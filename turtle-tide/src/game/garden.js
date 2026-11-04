@@ -267,7 +267,7 @@ export class Garden {
       const [x, z] = this.spot(r);
       if (near(x, z, 3)) continue;
       const yaw = r() * TAU;
-      r(); // (a draw that sets nothing, so the forest stays as it is)
+      r(); // (an unused draw: the seeded layout, which the thumbnail shows, depends on it)
       const { groups, lead, blades } = kelpPanes(r, KELP, r.range(10, 17));
       for (const { geometry, hex } of groups) this.clump(x, z, geometry, hex, W.kelp, yaw, blades, true);
       this.clump(x, z, lead, C.seams, W.kelpLead, yaw, blades, true).tint.fade = LEAD_FADE;
@@ -277,7 +277,7 @@ export class Garden {
       const [x, z] = this.spot(r);
       const { groups: [{ geometry, hex }], blades } = grassPanes(r, GRASS);
       const yaw = r() * TAU;
-      r(); // (likewise)
+      r(); // (the same)
       this.clump(x, z, geometry, hex, W.grass, yaw, blades, false);
     }
     // Starfish.
