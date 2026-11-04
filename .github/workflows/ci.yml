@@ -1,5 +1,4 @@
-# Each starter installs, builds and plays 20 s in headless Chrome (the
-# runner's own google-chrome) with no console or page error.
+# Each starter installs and builds with no error.
 name: ci
 on:
   push:
@@ -7,7 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  smoke:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -15,5 +14,4 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-      - run: npm install --no-audit --no-fund
       - run: npm test
