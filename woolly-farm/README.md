@@ -134,6 +134,6 @@ change with the state: the pumpkin is *fast asleep* until it wakes.
 3. **The material words**: search `src/game/` for "knitted wool" and "felt"
    and say your medium instead, keeping what each thing is.
 
-Run it on Dewdrop with `npm run dev`, which uploads it on every save
+Run it on Dewdrop with `npm run dev`, which uploads it and prints a link to play it
 (https://alpha.dewdrop.world/docs/development-flow), and judge each change
 there in motion: walk round, work a bed, wake the pumpkin.

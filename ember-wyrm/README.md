@@ -132,6 +132,6 @@ glows, and a dead dragon's eyes become "a dark heavy-lidded slit".
 3. **The cast**: the descriptions in `DRAGON`, `BLUE_DRAGON` and `KNIGHT` decide what
    the shapes are drawn as: a wyvern, an armored beetle, a samurai.
 
-`npm run dev` plays it on Dewdrop, uploading it on every save
+`npm run dev` uploads it to Dewdrop and prints a link to play it
 (https://alpha.dewdrop.world/docs/development-flow). Change one thing at a
 time and judge it in motion on Dewdrop, not from a still.
