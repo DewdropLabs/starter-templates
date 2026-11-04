@@ -36,7 +36,7 @@ public/sounds/
 
 On Dewdrop the look comes from the style prompt, the background colour and
 description, and each mesh's colour and description; lights, textures and fog
-only show in `npm run dev`.
+don't show.
 The prompt (`PROMPT` in `src/look.js`):
 
 ```
@@ -132,6 +132,6 @@ glows, and a dead dragon's eyes become "a dark heavy-lidded slit".
 3. **The cast**: the descriptions in `DRAGON`, `BLUE_DRAGON` and `KNIGHT` decide what
    the shapes are drawn as: a wyvern, an armored beetle, a samurai.
 
-`npm run dev` for the shapes and the play, `npx dewctl dev --watch` for the look on
-Dewdrop (https://alpha.dewdrop.world/docs/development-flow). Change one thing at a
+`npm run dev` plays it on Dewdrop, uploading it on every save
+(https://alpha.dewdrop.world/docs/development-flow). Change one thing at a
 time and judge it in motion on Dewdrop, not from a still.

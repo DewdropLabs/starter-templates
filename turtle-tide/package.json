@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "dewctl dev --watch",
     "build:dew": "vite build --mode dew"
   },
   "dependencies": {

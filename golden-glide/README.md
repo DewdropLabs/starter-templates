@@ -140,8 +140,8 @@ own (the pennant, a wing's red leading edge, the lit cottage window).
    trees (`W` and `CROPS` in `src/game/world.js`) and the glider (`C` in
    `src/game/glider.js`). Rewrite them in your style's own words.
 
-`npm run dev` plays the shapes without the look; `npx dewctl dev --watch` plays
-it on Dewdrop (https://alpha.dewdrop.world/docs/development-flow).
+`npm run dev` plays it on Dewdrop, uploading it on every save
+(https://alpha.dewdrop.world/docs/development-flow).
 
 Change one thing at a time and judge it in motion on Dewdrop, not from a
 still: does the ring still read as a ring, the sky as the hour you meant?

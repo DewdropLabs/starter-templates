@@ -290,7 +290,6 @@ export class Garden {
 
   // The surface overhead: rings of colour round the light (squares read as
   // blocks round it), and the light itself; they move along with the turtle.
-  // (MeshBasicMaterial, so the colours hold in npm run dev too.)
   buildSurface() {
     this.sky = new THREE.Group();
     this.world.add(this.sky);
