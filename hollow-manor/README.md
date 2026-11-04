@@ -124,5 +124,5 @@ wick smoking, just blown out".
 3. **The ghost** (`GHOST_ROBE`, `GHOST_WORDS` in `src/look.js`, the shape in
    `src/game/ghost.js`).
 
-Run it on Dewdrop with `npm run dev`, which uploads it as you save:
+Run it on Dewdrop with `npm run dev`, which uploads it and prints a link to play it:
 https://alpha.dewdrop.world/docs/development-flow.

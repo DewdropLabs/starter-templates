@@ -142,7 +142,7 @@ the net's are in their own files.
 3. **The material words**: search for "stained glass" and "lead" and say your
    medium instead, keeping what each thing is.
 
-`npm run dev` plays it on Dewdrop, uploading it on every save:
+`npm run dev` uploads it to Dewdrop and prints a link to play it:
 https://alpha.dewdrop.world/docs/development-flow.
 
 Change one thing at a time and judge it in motion on Dewdrop, not from a
