@@ -8,7 +8,7 @@ look.
 | <img src="golden-glide/thumbnail.jpg" width="320" alt="Golden Glide"> | **Golden Glide** (`golden-glide`): fly a wooden glider through wind rings over golden countryside at sunset, in gouache. |
 | <img src="ember-wyrm/thumbnail.jpg" width="320" alt="Ember Wyrm"> | **Ember Wyrm** (`ember-wyrm`): a knight against a huge red dragon on a ruined cliff top, in colored pencil. |
 | <img src="woolly-farm/thumbnail.jpg" width="320" alt="Woolly Farm"> | **Woolly Farm** (`woolly-farm`): till, plant and harvest a knitted farm until the giant pumpkin wakes, in wool and felt. |
-| <img src="turtle-tide/thumbnail.jpg" width="320" alt="Turtle Tide"> | **Turtle Tide** (`turtle-tide`): a sea turtle catches jellyfish through an endless kelp forest at night, in stained glass. |
+| <img src="turtle-tide/thumbnail.jpg" width="320" alt="Turtle Tide in Four Worlds on Dewdrop"> | **Turtle Tide** (`turtle-tide`): a sea turtle catches jellyfish through an endless kelp forest at night, in stained glass. |
 | <img src="hollow-manor/thumbnail.jpg" width="320" alt="Hollow Manor"> | **Hollow Manor** (`hollow-manor`): light the candelabras down a haunted hallway in first person, in gothic horror. |
 
 ## Start from one
