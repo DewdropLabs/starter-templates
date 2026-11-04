@@ -35,7 +35,7 @@ public/sounds/
 
 On Dewdrop the look comes from the style prompt, the background colour and
 description, and each mesh's colour and description; lights, textures and fog
-only show in `npm run dev`. The prompt (`PROMPT` in `src/look.js`) is a short
+don't show. The prompt (`PROMPT` in `src/look.js`) is a short
 style phrase and then a description of the frame:
 
 ```
@@ -77,7 +77,7 @@ the corners.
   in four close violets and blues (`C.plates`) over black lead `#14102e`.
   Its shell comes out iridescent violet with cyan plates.
 - **The surface** is rings of six colours from `#e8ffff` out to `#0e2e6e`
-  round the light (`SURFACE`), unlit so they hold in `npm run dev` too.
+  round the light (`SURFACE`).
 - **The water** `#0a2258`: everything fades into it with distance, about two
   thirds gone at 24 m (`src/game/water.js`); the forest fades a little slower
   (`GLOWING`), so it shines out of the dark.
@@ -142,7 +142,7 @@ the net's are in their own files.
 3. **The material words**: search for "stained glass" and "lead" and say your
    medium instead, keeping what each thing is.
 
-`npm run dev` plays it locally, `npx dewctl dev --watch` on Dewdrop:
+`npm run dev` plays it on Dewdrop, uploading it on every save:
 https://alpha.dewdrop.world/docs/development-flow.
 
 Change one thing at a time and judge it in motion on Dewdrop, not from a

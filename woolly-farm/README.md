@@ -63,8 +63,8 @@ The palette is `C` in `src/look.js`: grass `#86c23c`, hedge `#4f9a32`, soil
 trim `#f6f2ea` and roof `#6a4a3a`, hay `#e8c25a`, carrot orange `#f08a20`,
 sunflower `#f6c02a`, cabbage `#8cc63f`/`#5aa83a`, sky `#a8d8f0`.
 
-- Saturated, clay-like colours, a little brighter than looks right in
-  `npm run dev`: knitted wool keeps colours soft on Dewdrop.
+- Saturated, clay-like colours, a little brighter than looks right as plain
+  colours: knitted wool keeps colours soft on Dewdrop.
 - The giant pumpkin is a deeper `#f05a10` with "vivid saturated orange" in
   its words: a big soft orange washes out toward beige.
 - Colour carries the state: a bed darkens as it's watered, and the bed under
@@ -135,6 +135,6 @@ change with the state: the pumpkin is *fast asleep* until it wakes.
 3. **The material words**: search `src/game/` for "knitted wool" and "felt"
    and say your medium instead, keeping what each thing is.
 
-Run it with `npm run dev`, or on Dewdrop with `npx dewctl dev --watch`
+Run it on Dewdrop with `npm run dev`, which uploads it on every save
 (https://alpha.dewdrop.world/docs/development-flow), and judge each change
 there in motion: walk round, work a bed, wake the pumpkin.

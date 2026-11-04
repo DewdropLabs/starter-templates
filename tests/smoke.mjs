@@ -1,7 +1,10 @@
 // This repository's own check (never part of a starter): each starter, in a
 // temporary copy, installs, builds, shows its wait to start, and once a key
 // starts it plays for 20 s in headless Chrome with no console error or page
-// error. Screenshots go to a temporary folder.
+// error. Screenshots go to a temporary folder. A starter plays on Dewdrop
+// alone; here Vite's dev server serves its own three.js code to the browser,
+// with `dewdrop-sdk` aliased to a stub that does nothing, so what this checks
+// is the starter's code, not its look.
 //
 //   npm test                    all five
 //   npm test -- woolly-farm     just one
@@ -39,10 +42,14 @@ for (const id of STARTERS) {
     delete pkg.devDependencies.dewctl;
     await writeFile(join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
     execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
-    execFileSync('npm', ['run', 'build:dew'], { cwd: dir, stdio: 'inherit' });
+    execFileSync('npm', ['run', 'build'], { cwd: dir, stdio: 'inherit' });
 
+    // Vite serves the starter's own code; `dewdrop-sdk` is Dewdrop's, so a stub stands in for it here, and the
+    // starter's own Vite config, whose plugin refuses a dev server, is set aside.
+    await writeFile(join(dir, 'smoke-sdk.js'), "const nothing = () => {};\nexport const session = { dev: true, mobile: false, ending: null, exit: nothing, allowPortrait: nothing, addEventListener: nothing, removeEventListener: nothing };\nexport const saves = { load: async () => false, save: async () => {} };\nexport const llm = { fetch: async () => { throw new Error('no model calls in the smoke test'); }, providers: async () => [] };\nexport const backend = { send: nothing, addEventListener: nothing, removeEventListener: nothing };\nexport const clients = backend;\nexport const voice = { capture: () => ({ read: () => [], stop: nothing }), SAMPLE_RATE: 48000 };\nexport const player = '';\n");
+    await writeFile(join(dir, 'smoke.vite.config.js'), "export default { resolve: { alias: { 'dewdrop-sdk': '/smoke-sdk.js' } } };\n");
     const port = await freePort(), url = `http://127.0.0.1:${port}/`;
-    dev = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: dir, stdio: 'ignore', detached: true });
+    dev = spawn(join(dir, 'node_modules', '.bin', 'vite'), ['--config', 'smoke.vite.config.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { cwd: dir, stdio: 'ignore', detached: true });
     for (let i = 0; ; i++) {
       if (await fetch(url).then((r) => r.ok, () => false)) break;
       if (i > 60) throw new Error('the dev server did not start');
