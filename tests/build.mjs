@@ -1,0 +1,36 @@
+// This repository's own check (never part of a starter): each starter, in a
+// temporary copy, installs and builds with no error.
+//
+//   npm test                    all five
+//   npm test -- woolly-farm     just one
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const STARTERS = process.argv.slice(2).length ? process.argv.slice(2) : ['golden-glide', 'ember-wyrm', 'woolly-farm', 'turtle-tide', 'hollow-manor'];
+const failed = [];
+
+for (const id of STARTERS) {
+  const dir = await mkdtemp(join(tmpdir(), `${id}-`));
+  try {
+    await cp(join(ROOT, id), dir, { recursive: true, filter: (src) => !/\/(node_modules|dist)(\/|$)/.test(src) });
+    // (Without dewctl: building doesn't need it.)
+    const pkg = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
+    delete pkg.devDependencies.dewctl;
+    await writeFile(join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
+    execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
+    execFileSync('npm', ['run', 'build'], { cwd: dir, stdio: 'inherit' });
+    console.log(`ok ${id}`);
+  } catch (e) {
+    failed.push(id);
+    console.error(`FAIL ${id}: ${e.message}`);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+console.log(failed.length ? `failed: ${failed.join(', ')}` : 'all passed');
+process.exit(failed.length ? 1 : 0);
