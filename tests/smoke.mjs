@@ -42,7 +42,7 @@ for (const id of STARTERS) {
     delete pkg.devDependencies.dewctl;
     await writeFile(join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
     execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
-    execFileSync('npm', ['run', 'build:dew'], { cwd: dir, stdio: 'inherit' });
+    execFileSync('npm', ['run', 'build'], { cwd: dir, stdio: 'inherit' });
 
     // Vite serves the starter's own code; `dewdrop-sdk` is Dewdrop's, so a stub stands in for it here, and the
     // starter's own Vite config, whose plugin refuses a dev server, is set aside.
