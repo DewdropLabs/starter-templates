@@ -1,10 +1,11 @@
 // This repository's own check (never part of a starter): each starter, in a
-// temporary copy, installs and builds with no error.
+// temporary copy, installs and builds for Dewdrop with no error.
 //
 //   npm test                    all five
 //   npm test -- woolly-farm     just one
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,12 +18,9 @@ for (const id of STARTERS) {
   const dir = await mkdtemp(join(tmpdir(), `${id}-`));
   try {
     await cp(join(ROOT, id), dir, { recursive: true, filter: (src) => !/\/(node_modules|dist)(\/|$)/.test(src) });
-    // (Without dewctl: building doesn't need it.)
-    const pkg = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
-    delete pkg.devDependencies.dewctl;
-    await writeFile(join(dir, 'package.json'), JSON.stringify(pkg, null, 2));
     execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
     execFileSync('npm', ['run', 'build'], { cwd: dir, stdio: 'inherit' });
+    if (!existsSync(join(dir, 'dist', 'main.js'))) throw new Error('the build wrote no dist/main.js');
     console.log(`ok ${id}`);
   } catch (e) {
     failed.push(id);
