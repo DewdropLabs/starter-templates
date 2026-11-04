@@ -280,8 +280,6 @@ export function create(game) {
     d.angle = angleTo(yaw, yawTo(p.x, p.z));
     play('creak', { volume: 0.75, rate: 1.05 });
     d.room.material.color.set(ROOM_GLOW);
-    d.room.material.emissive = new THREE.Color(ROOM_GLOW);
-    d.room.material.emissiveIntensity = 0.8;
     d.room.userData.description = 'a warmly lit little room beyond the door, soft golden lamplight';
     spill.position.copy(p).setY(1.0);
     wedge.position.copy(peekAt(d, 0, _d)).setY(0.015);

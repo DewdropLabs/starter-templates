@@ -1,7 +1,7 @@
 // This repository's own check (never part of a starter): each starter, in a
 // temporary copy, installs, builds, shows its wait to start, and once a key
 // starts it plays for 20 s in headless Chrome with no console error or page
-// error. Screenshots go to a temporary folder. A starter plays on Dewdrop
+// error. A starter plays on Dewdrop
 // alone; here Vite's dev server serves its own three.js code to the browser,
 // with `dewdrop-sdk` aliased to a stub that does nothing, so what this checks
 // is the starter's code, not its look.
@@ -24,7 +24,6 @@ const PLAY = 20; // s
 const sleep = (s) => new Promise((done) => setTimeout(done, s * 1000));
 const freePort = () => new Promise((done) => { const s = createServer().listen(0, () => { const { port } = s.address(); s.close(() => done(port)); }); });
 
-const shots = await mkdtemp(join(tmpdir(), 'starter-shots-'));
 const browser = await puppeteer.launch({
   headless: true,
   ...(process.env.CHROME ? { executablePath: process.env.CHROME } : { channel: 'chrome' }),
@@ -66,11 +65,9 @@ for (const id of STARTERS) {
     await page.keyboard.press('KeyW'); // (starts it, and unlocks sound)
     if (await page.$('.hud.waiting')) throw new Error('a key did not start it');
     await sleep(PLAY);
-    const shot = join(shots, `${id}.png`);
-    await page.screenshot({ path: shot });
     await page.close();
     if (errors.length) throw new Error(`${errors.length} error(s):\n  ${errors.join('\n  ')}`);
-    console.log(`ok ${id} (${shot})`);
+    console.log(`ok ${id}`);
   } catch (e) {
     failed.push(id);
     console.error(`FAIL ${id}: ${e.message}`);
@@ -81,5 +78,5 @@ for (const id of STARTERS) {
 }
 
 await browser.close();
-console.log(failed.length ? `failed: ${failed.join(', ')}` : `all passed; screenshots in ${shots}`);
+console.log(failed.length ? `failed: ${failed.join(', ')}` : 'all passed');
 process.exit(failed.length ? 1 : 0);

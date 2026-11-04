@@ -20,10 +20,6 @@ document.body.style.overflow = 'hidden';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 300);
-scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8070, 1.5));
-const sun = new THREE.DirectionalLight(0xffffff, 1.7);
-sun.position.set(-40, 80, 30);
-scene.add(sun);
 
 // (On a phone held upright the view turns portrait; zoom out a little so the
 // scene still fits: half way, by area, to keeping the width it has at 1:1.)

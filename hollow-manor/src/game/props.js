@@ -14,11 +14,8 @@ export const FLAME_GEO = new THREE.LatheGeometry(Array.from({ length: 15 }, (_, 
 }), 14);
 
 // Something that gives light: a bright colour that the baked light leaves alone.
-// (Emissive colours don't show on Dewdrop: the colour itself reads as the light.)
 export function glow(geometry, color, description, o) {
   const m = mesh(geometry, color, description, o);
-  m.material.emissive = new THREE.Color(color);
-  m.material.emissiveIntensity = 0.9;
   m.userData.glow = true;
   return m;
 }

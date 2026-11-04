@@ -84,7 +84,7 @@ class Shards {
 
   set(color) {
     if (this.sets.has(color)) return this.sets.get(color);
-    const mesh = instanced(this.root, new THREE.OctahedronGeometry(1, 0).scale(1, 0.35, 0.7), new THREE.MeshStandardMaterial({ color, roughness: 0.3, emissive: new THREE.Color(color), emissiveIntensity: 0.7 }), this.n, W.shards);
+    const mesh = instanced(this.root, new THREE.OctahedronGeometry(1, 0).scale(1, 0.35, 0.7), new THREE.MeshStandardMaterial({ color, roughness: 0.3 }), this.n, W.shards);
     const s = { mesh, next: 0, items: Array.from({ length: this.n }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), spin: new THREE.Vector3(), rot: new THREE.Euler(), life: 1, max: 1, size: 0 })) };
     this.sets.set(color, s);
     return s;
@@ -130,7 +130,7 @@ class Motes {
   constructor(root) {
     const r = rng(9);
     this.items = Array.from({ length: 70 }, () => ({ p: new THREE.Vector3(r.range(-1, 1) * BOX, r.range(-0.6, 1) * BOX * 0.6, r.range(-1, 1) * BOX), v: new THREE.Vector3(r.range(-0.15, 0.15), r.range(0.02, 0.15), r.range(-0.15, 0.15)), s: r.range(0.03, 0.075), ph: r() * TAU }));
-    this.mesh = instanced(root, new THREE.SphereGeometry(1, 6, 5), new THREE.MeshStandardMaterial({ color: C.mote, roughness: 0.3, emissive: new THREE.Color(C.mote), emissiveIntensity: 0.6 }), this.items.length, 'tiny glowing motes of light drifting in the dark water');
+    this.mesh = instanced(root, new THREE.SphereGeometry(1, 6, 5), new THREE.MeshStandardMaterial({ color: C.mote, roughness: 0.3 }), this.items.length, 'tiny glowing motes of light drifting in the dark water');
   }
 
   frame(dt, t, eye) {

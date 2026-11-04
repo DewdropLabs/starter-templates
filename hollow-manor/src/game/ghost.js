@@ -85,13 +85,11 @@ export class Ghost {
     this.rest = Float32Array.from(p.array); // (for the hem's flutter)
     this.tinted = [];
     // Each part's colour runs from `lo` (barely there) to its own at full visibility.
-    const tint = (m, base, lo, emissive = 0) => {
-      m.material.emissive = base.clone();
-      m.material.emissiveIntensity = emissive;
+    const tint = (m, base, lo) => {
       this.tinted.push({ m, base, lo });
       return m;
     };
-    this.sheet = tint(mesh(geo, ROBE.clone()), ROBE, 0.25, 0.12);
+    this.sheet = tint(mesh(geo, ROBE.clone()), ROBE, 0.25);
     this.body.add(this.sheet);
 
     // Under the hood: shadow, and deep in it a faint gaunt face. (Eye holes
@@ -104,13 +102,13 @@ export class Ghost {
       const arm = new THREE.Group();
       arm.position.set(s * 0.27, 1.66, 0.05);
       arm.rotation.set(-0.7, 0, s * 0.22);
-      const sleeve = tint(mesh(new THREE.CylinderGeometry(0.045, 0.085, 0.8, 8, 1, true), ROBE.clone(), 'a long thin arm in trailing tattered black rags', { position: [0, -0.4, 0] }), ROBE, 0.25, 0.12);
+      const sleeve = tint(mesh(new THREE.CylinderGeometry(0.045, 0.085, 0.8, 8, 1, true), ROBE.clone(), 'a long thin arm in trailing tattered black rags', { position: [0, -0.4, 0] }), ROBE, 0.25);
       sleeve.material.side = THREE.DoubleSide;
       arm.add(sleeve);
       const hand = group('long pale bony skeletal fingers, clawed');
       hand.position.y = -0.82;
       for (let f = 0; f < 4; f++) {
-        hand.add(tint(mesh(new THREE.CylinderGeometry(0.011, 0.005, 0.26, 5), BONE.clone(), undefined, { position: [(f - 1.5) * 0.026, -0.12, 0.01 * Math.abs(f - 1.5)], rotation: [0.25, 0, (f - 1.5) * 0.13] }), BONE, 0.15, 0.2));
+        hand.add(tint(mesh(new THREE.CylinderGeometry(0.011, 0.005, 0.26, 5), BONE.clone(), undefined, { position: [(f - 1.5) * 0.026, -0.12, 0.01 * Math.abs(f - 1.5)], rotation: [0.25, 0, (f - 1.5) * 0.13] }), BONE, 0.15));
       }
       arm.add(hand);
       this.body.add(arm);
