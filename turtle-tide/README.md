@@ -47,7 +47,7 @@ and a pink jellyfish drifts on the left. Deep blue water fills the background.
 
 - **Stained glass mosaic with vibrant backlit illumination**: the whole style,
   in one short phrase: a backlit window, bright jewel colours, crisp lead
-  lines. Other glass styles changed only the texture.
+  lines. Other glass styles change only the texture.
 - **A large violet sea turtle with a faceted shell swims away from the
   viewer**: what's in the middle of the frame, as the camera sees it.
 - **a channel between dense walls of tall pointed kelp in purple, teal and
@@ -61,7 +61,7 @@ The background is `#0c2a6a`, *deep sapphire-blue sea at night, glowing like
 stained glass, cyan light shining down from above*. A vignette (`VIGNETTE`)
 darkens the edges to deep navy, like a window's dark frame round a glowing
 middle: a layer over the page, so it shows exactly as drawn. It's clear to
-about a third of the way out (a softer one barely showed) and nearly opaque in
+about a third of the way out (a softer one barely shows) and nearly opaque in
 the corners.
 
 ## Colour
@@ -71,7 +71,7 @@ the corners.
 - **Kelp** in three colours a clump, from ten (`KELP`): violets, indigo,
   blues, cyan, teals, emerald, lime and a touch of magenta, the pieces in
   turns, never two alike side by side or one above another: a pane all in one
-  colour read as a single pane, not glass.
+  colour reads as a single pane, not glass.
 - **Sponges** in two of pink, orange, gold, violet, cyan and blue (`CORAL`);
   the **floor** in big triangles of three dark blues (`FLOOR`); the **turtle**
   in four close violets and blues (`C.plates`) over black lead `#14102e`.
@@ -101,7 +101,7 @@ the net's are in their own files.
 - **Big flat panes, everything abstract** (`src/game/panes.js`). Dewdrop leads
   round big flat areas of one colour, so the fewer and bigger the pieces, the
   more it reads as a window; fine detail (a carpet of short grass, small
-  leaves) came out as pencil hatching. A kelp clump is four or five tall
+  leaves) comes out as pencil hatching. A kelp clump is four or five tall
   pointed panes in an arc, each cut along its length into pieces with slanting
   cuts and thin lead between; the grass a few broad blades; the coral two to
   four very low-poly barrel sponges and a low dome; the rocks and the floor big

@@ -43,16 +43,16 @@ The prompt (`PROMPT` in `src/look.js`):
 
 - **cinematic realistic gothic horror**: the medium, first.
 - **Pitch-black darkness beyond a small pool of warm candlelight, most of the
-  hall unlit and unseen**: the darkness has to be said. A first prompt with
-  only "deep darkness, warm candlelight" lit the whole hall evenly, and the
-  pools of light didn't read.
+  hall unlit and unseen**: the darkness has to be said. A prompt with only
+  "deep darkness, warm candlelight" lights the whole hall evenly, and the
+  pools of light don't read.
 - **cold blue moonlight through the windows**: the other light, which
   `light.js` bakes in blue under each window (`MOON`).
 - **dust and decay**: the mottled, decayed walls.
 - **a haunted manor hallway at night**: the place, once for the whole frame.
 
 The background is `#070a12`, "a black night sky, a pale moon glimpsed behind
-clouds": near black, seen only through the windows. A deep blue sky lit the
+clouds": near black, seen only through the windows. A deep blue sky lights the
 whole hall.
 
 When the door opens at the end, the prompt gains a sentence (`PROMPT_DOOR`):
@@ -67,7 +67,7 @@ The candle is baked into tiles about a metre across, every frame, as in
 - a night floor of `(0.008, 0.008, 0.012)`: about 1 % of daylight, a little
   blue. Dark colours are lifted a lot, so the floor has to be this low.
 - the candle `(1.0, 0.62, 0.3)` with a small radius (`r` 1.45 m in your hand,
-  1.6 on a candelabra). A wider pool lit the hall evenly.
+  1.6 on a candelabra). A wider pool lights the hall evenly.
 - the moon `(0.32, 0.45, 0.85)` under each window.
 - daylight colours that are dark already: oak floor `#6a4a32`, green damask
   `#5a6a4c`, red runner `#8a2a26`, ceiling `#4a4440`.
@@ -78,7 +78,7 @@ The candle is baked into tiles about a metre across, every frame, as in
 
 Even so, walls 2–4 m away stay faintly lit; `game/shade.js` closes the edges
 of the view in with a tight vignette on the page (a softer one barely
-registered).
+registers).
 
 ## Words
 
@@ -101,13 +101,13 @@ wick smoking, just blown out".
 ## Shapes and the camera
 
 - **The ghost must be dark, not pale.** A pale robe, however misty its words,
-  came out as a white bedsheet costume; eye holes made it a Halloween
-  sheet, a gaping mouth a "Scream" mask.
-- Shapes that came out as something else: a rounded box in the hand as a
+  comes out as a white bedsheet costume. No eye holes or open mouth either:
+  they turn it into a Halloween sheet or a "Scream" mask.
+- Shapes that come out as something else: a rounded box in the hand as a
   charred block, knuckle spheres as eyes, a pale cuff as bare skin, round
   pleats as red pillars, a dark window pane as frosted glass, a pale oval
   portrait face as a mirror.
-- **Lighting can't fade a scene out.** Snuffing candles barely darkened the
+- **Lighting can't fade a scene out.** Snuffing candles barely darkens the
   frame; the black on the page at the cut does it.
 - Near the lens things grow into blobs: the held candle sits 0.65 m off and
   boxy, candelabras stay 0.9 m off, the ghost's lunge stops about 1 m off

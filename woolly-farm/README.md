@@ -92,8 +92,7 @@ change with the state: the pumpkin is *fast asleep* until it wakes.
 
 - **Plump and a little lumpy.** Everything is rounded like a stuffed toy,
   pushed in and out by smooth noise (`lumpy`), never machine-perfect. Big
-  surfaces get rows of ribs (`ribbed`) that read as chunky knitting. On the
-  same scene this beat claymation.
+  surfaces get rows of ribs (`ribbed`) that read as chunky knitting.
 - **Bobbles read as wool**: a sheep's fleece is a cluster of fat spheres.
 - **Small, fast things smear.** The hen is big for a hen (about 0.6 m),
   trots no faster than the farmer and flaps slowly and wide; clods and water
@@ -101,8 +100,8 @@ change with the state: the pumpkin is *fast asleep* until it wakes.
 - **Near the lens, things become blobs.** A crop shrinks into its bed as
   the camera comes closer than about 3.4 m, so a big leaf never fills the
   frame.
-- **A full hat brim hid the doll.** Seen from above, the farmer was a straw
-  disc; the brim is narrowed to 0.82.
+- **A full hat brim hides the doll.** Seen from above, the farmer becomes a
+  straw disc, so the brim is narrowed to 0.82.
 - **A sunflower head is as wide as the basket**, so a picked one goes in
   smaller, standing up in the middle with its head over the rim, and its
   petals don't poke through the weave.

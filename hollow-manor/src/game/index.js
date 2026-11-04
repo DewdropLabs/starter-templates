@@ -462,7 +462,7 @@ export function create(game) {
         HAND.x - reach * 0.08 + Math.sin(bob) * 0.012 * speedK + clamp(-lx * 0.0002, -0.02, 0.02),
         HAND.y + reach * 0.09 - Math.abs(Math.sin(bob)) * 0.014 * speedK + clamp(ly * 0.0002, -0.02, 0.02),
         HAND.z - reach * 0.04);
-      hand.root.rotation.z = -reach * 0.12; // (a bigger roll smeared the glove and the tilted flame on Dewdrop)
+      hand.root.rotation.z = -reach * 0.12; // (a bigger roll smears the glove and the tilted flame on Dewdrop)
 
       const lit = candleK(candle, candleT);
       const flick = 1 + Math.sin(t * 11.3) * 0.05 + Math.sin(t * 17.9 + 1) * 0.04 + Math.sin(t * 3.1) * 0.03;

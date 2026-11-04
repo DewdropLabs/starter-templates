@@ -72,13 +72,13 @@ and far faces.
   crowns `#6f8a3a`. Greens read as a spring meadow, not the end of a summer's day.
 - **Contrast for small things**: gold on a warm sky is low contrast, so the
   glider (`#c23a2a`) and rings (`#cc3c28`) are red and cream (honey wood on
-  gold ground read as nothing).
+  gold ground reads as nothing).
 - **Mid values for darks**: the pilot's jacket is tan `#9a6638` and the leaves
   warm light golds; darker browns read as a blob or as mud.
 - **Glow only where it counts**: a lined-up ring's cream stripes go amber
-  `#e8891a`. A whole hoop glowing pale gold read as a peach wash on the sky.
+  `#e8891a`. A whole hoop glowing pale gold reads as a peach wash on the sky.
 - **Grey storm, not cream**: the tornado is storm grey `#7a7470` with ochre
-  dust at its foot; pale cream read as pastry.
+  dust at its foot; pale cream reads as pastry.
 
 ## Words
 
@@ -97,9 +97,9 @@ own (the pennant, a wing's red leading edge, the lit cottage window).
 
 ## Shapes
 
-- **Rings**: a big glowing torus came out as a swirl of wind, not a hoop. Thick
+- **Rings**: a big glowing torus comes out as a swirl of wind, not a hoop. Thick
   wooden hoops wrapped in red and cream ribbon, with a pennant, read as targets.
-- **Clouds**: from words alone they came out small and wispy. Big heaps of
+- **Clouds**: from words alone they come out small and wispy. Big heaps of
   overlapping spheres 1.4–1.8 km away read as cumulus; huge squashed domes as hills.
 - **Tornado**: stacked tori read as onion rings. One continuous twisting
   funnel in a wider shell, storm grey and described as a swirling funnel of

@@ -94,11 +94,11 @@ glows, and a dead dragon's eyes become "a dark heavy-lidded slit".
 
 ## Shapes
 
-- **What read at once**: the dragon (crimson pencil with umber hatching, ivory horns
+- **What reads at once**: the dragon (crimson pencil with umber hatching, ivory horns
   and claws, a yellow eye), its head in profile (a swept tube snout, a hinged jaw,
   cone teeth), and the knight from behind (a flat-topped great helm, round pauldrons,
   a blue cloak, a shield with a gold sun, a sword).
-- **Flames**: short fat lathe tongues came out as orange balls or a caterpillar. Long
+- **Flames**: short fat lathe tongues come out as orange balls or a caterpillar. Long
   pointed tongues in three-tip clusters (`flameClusterGeometry`) read as flames.
 - **A head pointed at a low camera** is just the underside of a jaw, a red spike. Roars
   turn it side-on (`sideOn` in `brain.js`).

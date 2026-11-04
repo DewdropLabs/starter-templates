@@ -246,7 +246,7 @@ export function buildHall(root, light) {
 }
 
 // A heavy curtain 0.5 m wide and 3 m long, hanging from its top: a sheet
-// bent into deep pleats (round pleats as cylinders came out as red pillars).
+// bent into deep pleats (round pleats as cylinders come out as red pillars).
 function curtainGeometry(alongZ) {
   const g = new THREE.PlaneGeometry(0.5, 3.0, 16, 4);
   const p = g.attributes.position;

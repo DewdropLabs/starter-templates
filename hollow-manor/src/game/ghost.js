@@ -92,8 +92,8 @@ export class Ghost {
     this.sheet = tint(mesh(geo, ROBE.clone()), ROBE, 0.25);
     this.body.add(this.sheet);
 
-    // Under the hood: shadow, and deep in it a faint gaunt face. (Eye holes
-    // made it a Halloween sheet, a gaping mouth a "Scream" mask.)
+    // Under the hood: shadow, and deep in it a faint gaunt face. (No eye
+    // holes or open mouth: they make it a Halloween sheet or a "Scream" mask.)
     this.body.add(mesh(new THREE.SphereGeometry(1, 14, 10), '#030406', 'deep black shadow inside a ragged hood', { position: [0, 2.0, 0.19], scale: [0.14, 0.2, 0.08] }));
     this.body.add(tint(mesh(new THREE.SphereGeometry(1, 12, 10), FACE.clone(), 'a faint gaunt pale hollow-cheeked face half-lost in the shadow of the hood', { position: [0, 1.98, 0.235], scale: [0.075, 0.11, 0.035] }), FACE, 0.1));
 

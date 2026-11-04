@@ -81,7 +81,7 @@ export function portrait({ seed = 1, follows = false } = {}) {
   ];
   const canvas = mesh(new THREE.BoxGeometry(W - 2 * rail + 0.02, Hh - 2 * rail + 0.02, 0.03), '#6a5848', sitters[seed % sitters.length], { position: [0, 0, 0.03] });
   frame.add(canvas);
-  // (No face is built: a pale oval on the canvas came out as a round mirror
+  // (No face is built: a pale oval on the canvas comes out as a round mirror
   // or a clock face. The sitter comes from the painting's words.)
   let eyes = null;
   if (follows) {
@@ -153,7 +153,7 @@ export function sheetedChair() {
 // reads as a block or a stone). No knuckle spheres: they come out as eyes.
 export function heldCandle() {
   const root = group(); // (its words and the wax's: index.js handWords)
-  // (Dark: under the candle a brown glove came out beige, like a bare hand.)
+  // (Dark: under the candle a brown glove comes out beige, like a bare hand.)
   const GLOVE = '#16120f';
   const parts = [];
   const add = (m) => { root.add(m); parts.push(m); return m; };
@@ -176,7 +176,7 @@ export function heldCandle() {
   const thumb = add(mesh(new THREE.CapsuleGeometry(0.017, 0.05, 4, 8), GLOVE, 'a thumb in a smooth glossy black leather glove', { position: [-0.012, -0.036, -0.03], rotation: [0, 0, 1.15] }));
   thumb.rotation.order = 'ZYX';
   thumb.rotation.y = 0.5;
-  // (No white shirt cuff: under candlelight it read as bare skin.)
+  // (No white shirt cuff: under candlelight it reads as bare skin.)
   add(mesh(new THREE.CylinderGeometry(0.047, 0.054, 0.1, 14), GLOVE, 'the flared cuff of a smooth glossy black leather glove', { position: [0.04, -0.205, 0.04], rotation: [0.3, 0, -0.25] }));
   add(mesh(new THREE.CylinderGeometry(0.066, 0.08, 0.3, 14), '#1a171e', 'the sleeve of a black wool coat', { position: [0.09, -0.38, 0.1], rotation: [0.3, 0, -0.25] }));
 
