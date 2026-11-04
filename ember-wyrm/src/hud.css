@@ -1,0 +1,148 @@
+/* The page over the game: small, quiet, short-lived. html and body keep no
+   background, so the game shows through. */
+
+.hud {
+  --accent: #e0662f;
+  --pill: rgba(14, 16, 22, 0.44);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.3;
+  color: #fbfaf7;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 10;
+}
+.hud * { box-sizing: border-box; }
+.hud button { pointer-events: auto; font: inherit; color: inherit; cursor: pointer; }
+.hud .hidden { display: none !important; }
+.hud kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 0.12em 0.45em;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  font: 600 11px/1.3 var(--font);
+  text-align: center;
+  margin-right: 0.2em;
+}
+
+/* ---------- hearts, top left ---------- */
+/* A pale outline, to read over a dark frame and a bright one. */
+.hud .hearts {
+  position: absolute; top: 12px; left: 16px; display: flex; gap: 5px; padding: 5px 8px; border-radius: 999px;
+  background: rgba(14, 10, 12, 0.42); opacity: 0; transform: translateY(-4px); transition: opacity 0.5s, transform 0.5s;
+}
+.hud .hearts.show { opacity: 1; transform: none; }
+.hud.touch .hearts { left: 12px; }
+.hud .heart { display: block; width: 24px; height: 22px; }
+.hud .heart svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)); }
+.hud .heart .h { fill: #b3122a; stroke: #f4e6da; stroke-width: 1.6; stroke-linejoin: round; transition: fill 0.35s 0.25s, stroke 0.35s 0.25s; }
+.hud .heart .crack { fill: none; stroke: #f4e6da; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 0.15s; }
+.hud .heart.lost .h { fill: rgba(40, 10, 16, 0.55); stroke: rgba(244, 230, 218, 0.45); }
+.hud .heart.lost .crack { opacity: 0.6; }
+.hud .heart.hit { animation: hud-heart-hit 0.6s ease-out; }
+.hud .heart.last { animation: hud-heart-beat 0.9s ease-in-out infinite; }
+@keyframes hud-heart-hit { 0% { transform: scale(1.35); } 15% { transform: translateX(-4px) rotate(-10deg) scale(1.2); } 30% { transform: translateX(4px) rotate(8deg); } 45% { transform: translateX(-3px) rotate(-5deg); } 60% { transform: translateX(2px); } }
+@keyframes hud-heart-beat { 0%, 60%, 100% { transform: none; } 15% { transform: scale(1.22); } 30% { transform: scale(1.04); } 42% { transform: scale(1.16); } }
+
+/* ---------- waiting to start: the goal as a title at the top, the controls
+   under it, and how to start low down ---------- */
+.hud .lead {
+  position: absolute; left: 50%; top: 58px; transform: translateX(-50%); width: max-content; max-width: 90vw;
+  display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; transition: opacity 0.6s;
+}
+.hud .goal {
+  text-align: center; text-wrap: balance; font-size: 38px; font-weight: 700; letter-spacing: 0.01em; line-height: 1.1; color: #fff;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.75), 0 0 18px rgba(0, 0, 0, 0.55); transform: translateY(-6px); transition: transform 0.6s;
+}
+.hud.waiting .lead { opacity: 1; transition-delay: 0.4s; }
+.hud.waiting .goal { transform: none; transition-delay: 0.4s; }
+.hud .glyphs { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; padding: 6px 13px; border-radius: 999px; background: var(--pill); text-shadow: var(--shadow); }
+.hud .glyphs span { display: flex; align-items: center; gap: 4px; opacity: 0.92; }
+.hud.touch .lead { top: 46px; gap: 8px; }
+.hud.touch .goal { font-size: 26px; }
+@media (orientation: portrait) { .hud.touch .lead { top: 60px; } }
+.hud .start {
+  position: absolute; left: 50%; bottom: 54px; transform: translateX(-50%); padding: 8px 18px; border-radius: 999px;
+  background: var(--pill); font-size: 15px; letter-spacing: 0.02em; text-shadow: var(--shadow); animation: hud-breathe 2.4s ease-in-out infinite;
+}
+.hud:not(.waiting) .start { display: none; }
+@keyframes hud-breathe { 50% { opacity: 0.55; } }
+
+/* ---------- a boss's health bar, bottom centre ---------- */
+/* The paler trail (the recent damage) waits while blows keep landing, then
+   drains to meet the fill. */
+.hud .bars {
+  position: absolute;
+  left: 50%;
+  bottom: 56px;
+  transform: translateX(-50%);
+  width: min(56vw, 620px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hud .bar { opacity: 0; transition: opacity 0.5s; }
+.hud .bar.show { opacity: 1; }
+.hud .bar .name {
+  font: 400 15px/1.2 Georgia, 'Times New Roman', serif;
+  letter-spacing: 0.06em;
+  margin: 0 0 5px 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+.hud .bar .track {
+  position: relative;
+  height: 7px;
+  border-radius: 1px;
+  background: rgba(12, 10, 10, 0.62);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+.hud .bar .track i { position: absolute; inset: 1px; transform-origin: left center; border-radius: 1px; }
+.hud .bar .fill { background: var(--bar); transition: transform 0.12s ease-out; }
+.hud .bar .trail { background: color-mix(in srgb, var(--bar) 35%, #ffe9c8); transition: transform 0.55s ease-in 0.6s; }
+/* On touch: narrower, between the stick's side and the buttons on the right. */
+.hud.touch .bars { bottom: 52px; width: min(44vw, 400px); }
+.hud.touch .bar .name { font-size: 13px; }
+
+/* ---------- touch: the buttons and the stick ---------- */
+.hud .tbuttons { position: absolute; right: 22px; bottom: 22px; display: flex; flex-direction: row-reverse; align-items: flex-end; gap: 14px; }
+.hud .tbtn {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  background: rgba(14, 16, 22, 0.32);
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: var(--shadow);
+  padding: 0;
+  touch-action: none;
+}
+.hud .tbtn:nth-child(2) { width: 62px; height: 62px; margin-bottom: 44px; font-size: 13px; }
+.hud:not(.touch) .tbuttons, .hud.waiting .tbuttons { display: none; }
+.hud .tbtn.down { background: color-mix(in srgb, var(--accent) 55%, transparent); border-color: var(--accent); transform: scale(0.94); }
+.hud .stick {
+  position: absolute;
+  width: 112px;
+  height: 112px;
+  margin: -56px 0 0 -56px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: rgba(14, 16, 22, 0.18);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.hud.touch:not(.waiting) .stick { opacity: 0.6; }
+.hud.touch:not(.waiting) .stick.held { opacity: 1; }
+.hud .stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px; border-radius: 50%; background: rgba(255, 255, 255, 0.7); }
+
+/* ---------- the colour of a hard cut, over everything ---------- */
+.hud .cover { position: absolute; inset: 0; background: #000; }

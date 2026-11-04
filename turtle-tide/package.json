@@ -1,0 +1,17 @@
+{
+  "name": "turtle-tide",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dewctl dev --watch",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "dewctl": "^0.6.0",
+    "dewdrop-sdk": "^0.6.0",
+    "vite": "^8"
+  }
+}
