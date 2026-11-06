@@ -1,5 +1,6 @@
 // This repository's own check (never part of a starter): each starter, in a
-// temporary copy, installs and builds for Dewdrop with no error.
+// temporary copy, installs and builds for Dewdrop with no error, recording
+// the SDK it was built with.
 //
 //   npm test                    all five
 //   npm test -- woolly-farm     just one
@@ -21,6 +22,8 @@ for (const id of STARTERS) {
     execFileSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
     execFileSync('npm', ['run', 'build'], { cwd: dir, stdio: 'inherit' });
     if (!existsSync(join(dir, 'dist', 'main.js'))) throw new Error('the build wrote no dist/main.js');
+    // A build of the SDK from 0.7.0 records it, and Dewdrop holds the game to that version's behavior.
+    if (!existsSync(join(dir, 'dist', 'dewdrop-build.json'))) throw new Error('the build wrote no dist/dewdrop-build.json');
     console.log(`ok ${id}`);
   } catch (e) {
     failed.push(id);
