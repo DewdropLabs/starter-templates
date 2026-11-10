@@ -11,8 +11,8 @@
     "three-mesh-bvh": "0.9.15"
   },
   "devDependencies": {
-    "dewctl": "^0.8.0",
-    "dewdrop-sdk": "^0.8.0",
+    "dewctl": "^0.9.1",
+    "dewdrop-sdk": "^0.9.0",
     "vite": "^8"
   }
 }

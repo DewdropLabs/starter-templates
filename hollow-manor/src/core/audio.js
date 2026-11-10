@@ -1,5 +1,5 @@
 // Sound effects and music: the WAVs in public/sounds/, played by name
-// through Web Audio (on Dewdrop, <audio> elements make no sound).
+// through Web Audio.
 //
 //   sfx.unlock();                          // in the first key, click or touch (browsers start audio muted)
 //   sfx.preload(['whoosh', 'hit']);        // fetch ahead, so each plays on its very frame the first time too

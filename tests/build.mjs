@@ -1,7 +1,7 @@
 // This repository's own check (never part of a starter): each starter, in a
-// temporary copy, installs the dewctl on npm now — Dewdrop refuses an older
-// one, and `npm run dev` runs the starter's own copy — and builds for Dewdrop
-// with no error, recording the SDK it was built with.
+// temporary copy, installs the latest dewctl on npm — Dewdrop refuses one
+// before 0.7.0, and `npm run dev` runs the starter's own copy — and builds
+// for Dewdrop with no error, recording the SDK it was built with.
 //
 //   npm test                    all five
 //   npm test -- woolly-farm     just one
