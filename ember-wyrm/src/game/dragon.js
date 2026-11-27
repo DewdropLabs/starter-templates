@@ -21,7 +21,7 @@
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { clamp, lerp } from '../core/util.js';
-import { C, DRAGON, BLUE_DRAGON } from '../look.js';
+import { C, DRAGON, BLUE_DRAGON, GLOW, glow } from '../look.js';
 import { Sweep, hornGeometry, flameGeometry } from './shapes.js';
 
 const HIP = new THREE.Vector3(0, 3.3, -2.8);   // the body's pivot
@@ -40,13 +40,12 @@ const NECK_N = 12, TAIL_N = 15, TAIL_SEG = 0.6;
 // The palettes: every colour the rig uses, and its words.
 const RED = {
   scale: C.scale, scaleDark: C.scaleDark, belly: C.belly, membrane: C.membrane, bone: C.bone, spike: C.spike,
-  eye: C.eye, mouth: C.mouth, tooth: C.tooth, fire: C.fire, fireHot: C.fireHot, glowChest: C.glowChest, glowSeam: C.glowSeam,
+  eye: C.eye, mouth: C.mouth, tooth: C.tooth, fire: C.fire, fireHot: C.fireHot,
   words: DRAGON,
 };
 export const BLUE = {
   scale: C.blueScale, scaleDark: C.blueScaleDark, belly: C.blueBelly, membrane: C.blueMembrane, bone: C.blueHorn, spike: C.blueSpike,
-  eye: C.blueEye, mouth: C.blueMouth, tooth: C.tooth, fire: C.ice, fireHot: C.iceHot, glowChest: C.glowIce, glowSeam: C.glowIceSeam,
-  membraneOpacity: 0.86,
+  eye: C.blueEye, mouth: C.blueMouth, tooth: C.tooth, fire: C.ice, fireHot: C.iceHot,
   words: BLUE_DRAGON,
 };
 
@@ -147,17 +146,17 @@ export class Dragon {
     root.add(body);
     const B = (x, y, z) => [x - HIP.x, y - HIP.y, z - HIP.z]; // dragon space → body space
 
-    this.glowing = [];   // meshes that turn to fire for the breath: { m, base, hot, words, hotWords }
-    const glows = (m, hot, hotWords) => { this.glowing.push({ m, base: m.material.color.clone(), hot: new THREE.Color(hot), words: m.userData.description, hotWords }); return m; };
+    this.glowing = [];   // meshes that glow with fire for the breath: { m, words, hotWords }
+    const glows = (m, hot, hotWords) => { m.material.emissive.set(hot); m.material.emissiveIntensity = 0; this.glowing.push({ m, words: m.userData.description, hotWords }); return m; };
     body.add(mesh(new THREE.SphereGeometry(1, 28, 18).scale(2.0, 1.85, 3.7), P.scale, W.body, { position: B(0, 3.55, -0.1), rotation: [-0.1, 0, 0] }));
-    this.chest = glows(mesh(new THREE.SphereGeometry(1, 26, 18).scale(1.95, 1.95, 2.0), P.scale, W.chest, { position: B(0, 3.85, 2.35), parent: body }), P.glowChest, W.glowChest);
+    this.chest = glows(mesh(new THREE.SphereGeometry(1, 26, 18).scale(1.95, 1.95, 2.0), P.scale, W.chest, { position: B(0, 3.85, 2.35), parent: body }), P.fire, W.glowChest);
     glows(mesh(new THREE.SphereGeometry(1, 24, 14).scale(1.5, 1.0, 3.1), P.belly, W.belly, { position: B(0, 2.7, 0.9), rotation: [-0.12, 0, 0], parent: body }), P.fireHot, W.glowChest);
     body.add(mesh(new THREE.SphereGeometry(1, 24, 16).scale(1.85, 1.75, 2.0), P.scale, W.body, { position: B(0, 3.55, -2.9) }));
     // Plates across the chest's front: seams that blaze in the breath.
     for (let i = 0; i < 5; i++) {
       const dy = -1.15 + i * 0.5, rr = Math.sqrt(1.95 * 1.95 - dy * dy) + 0.03;
       const geo = new THREE.TorusGeometry(rr, 0.075, 6, 24, Math.PI * 0.7).rotateZ(Math.PI * 0.15).rotateX(Math.PI / 2);
-      glows(mesh(geo, P.scaleDark, W.seam, { position: B(0, 3.85 + dy, 2.35), parent: body }), P.glowSeam, W.glowSeam);
+      glows(mesh(geo, P.scaleDark, W.seam, { position: B(0, 3.85 + dy, 2.35), parent: body }), P.fireHot, W.glowSeam);
     }
     const spikeGeo = new THREE.ConeGeometry(0.32, 1, 6);
     for (let i = 0; i < 9; i++) {
@@ -170,7 +169,7 @@ export class Dragon {
     this.neckMesh = mesh(this.neck.geometry, P.scale, W.neck);
     this.neckMesh.frustumCulled = false;
     this.throat = new Sweep(NECK_N, 10, { flat: 0.7 });
-    this.throatMesh = glows(mesh(this.throat.geometry, P.belly, W.throat), P.glowChest, W.glowThroat);
+    this.throatMesh = glows(mesh(this.throat.geometry, P.belly, W.throat), P.fire, W.glowThroat);
     this.throatMesh.frustumCulled = false;
     root.add(this.neckMesh, this.throatMesh);
     this.neckSpikes = [];
@@ -246,7 +245,7 @@ export class Dragon {
     head.add(mesh(new THREE.SphereGeometry(1, 10, 8).scale(0.13, 0.12, 0.95), P.scaleDark, W.snout, { position: [0, 0.38, 1.35], rotation: [0.12, 0, 0] }));
     for (const s of [1, -1]) {
       head.add(mesh(new THREE.SphereGeometry(1, 10, 8).scale(0.15, 0.09, 0.6), P.scaleDark, W.brow, { position: [s * 0.42, 0.47, 0.78], rotation: [0.15, s * 0.3, s * -0.25] }));
-      const eye = mesh(new THREE.SphereGeometry(1, 14, 10).scale(0.13, 0.15, 0.28), P.eye, W.eye, { position: [s * 0.55, 0.32, 0.98], rotation: [0, s * 0.38, 0] });
+      const eye = mesh(new THREE.SphereGeometry(1, 14, 10).scale(0.13, 0.15, 0.28), { color: P.eye, emissive: P.eye, emissiveIntensity: GLOW.eye }, W.eye, { position: [s * 0.55, 0.32, 0.98], rotation: [0, s * 0.38, 0] });
       head.add(eye);
       (this.eyes ??= []).push(eye);
       head.add(mesh(new THREE.SphereGeometry(1, 8, 6).scale(0.045, 0.035, 0.08), P.mouth, W.nostril, { position: [s * 0.17, 0.3, 2.52], rotation: [0, s * 0.4, 0] }));
@@ -271,7 +270,7 @@ export class Dragon {
     const fire = this.mouthFire = new THREE.Group();
     fire.userData.description = W.mouthFire;
     const flame = flameGeometry(1, 0.35);
-    for (let i = 0; i < 3; i++) fire.add(mesh(flame, i ? P.fire : P.fireHot, W.mouthFire, { position: [(i - 1) * 0.18, -0.12, 0.7 + i * 0.25], rotation: [Math.PI / 2, 0, 0], scale: [0.9, 0.9, 0.9] }));
+    for (let i = 0; i < 3; i++) fire.add(mesh(flame, glow(i ? P.fire : P.fireHot, i ? GLOW.flame : GLOW.core), W.mouthFire, { position: [(i - 1) * 0.18, -0.12, 0.7 + i * 0.25], rotation: [Math.PI / 2, 0, 0], scale: [0.9, 0.9, 0.9] }));
     fire.visible = false;
     head.add(fire);
     this.mouthLocal = new THREE.Vector3(0, -0.2, 2.5);
@@ -306,7 +305,6 @@ export class Dragon {
     geo.setIndex([0, 1, 2, 2, 3, 9, 2, 9, 4, 2, 4, 10, 2, 10, 5, 2, 5, 11, 2, 11, 6, 2, 6, 12, 2, 12, 8, 2, 8, 1, 1, 8, 7, 1, 7, 0]);
     const membrane = mesh(geo, pal.membrane, W.wing);
     membrane.material.side = THREE.DoubleSide;
-    if (pal.membraneOpacity) { membrane.material.transparent = true; membrane.material.opacity = pal.membraneOpacity; }
     membrane.frustumCulled = false;
     this.body.add(membrane);
     const boneGeo = boneGeometry(0.2, 0.1), fingerGeo = boneGeometry(0.13, 0.04);
@@ -488,22 +486,24 @@ export class Dragon {
     return out.copy(v).sub(this.body.position).applyQuaternion(_bq.copy(this.body.quaternion).invert());
   }
 
-  // Open (1) or shut (0): a dark slit.
+  // Open (1), glowing, or shut (0): a dark slit.
   setEyes(k) {
     if (Math.abs(k - (this.eyesK ?? 1)) < 1e-3) return;
     this.eyesK = k;
     for (const e of this.eyes) {
       e.material.color.set(this.P.scaleDark).lerp(_col.set(this.P.eye), k);
+      e.material.emissiveIntensity = GLOW.eye * k;
       e.scale.y = lerp(0.25, 1, k);
-      e.userData.description = k > 0.5 ? this.W.eye : DRAGON.shutEye;
+      e.userData.description = k > 0.5 ? this.W.eye : this.W.shutEye;
     }
   }
 
+  // The breath building (0..1): the chest, belly, throat and seams glow.
   setGlow(k) {
     if (Math.abs(k - this.glow) < 1e-3) return;
     this.glow = k;
     for (const g of this.glowing) {
-      g.m.material.color.copy(g.base).lerp(g.hot, clamp(k * 1.15));
+      g.m.material.emissiveIntensity = GLOW.chest * clamp(k * 1.15);
       g.m.userData.description = k > 0.35 ? g.hotWords : g.words;
     }
   }

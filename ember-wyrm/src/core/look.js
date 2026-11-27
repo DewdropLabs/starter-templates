@@ -1,21 +1,26 @@
-// Meshes with a colour and a description (userData.description).
+// Meshes with a surface and a description (userData.description). A
+// surface is a colour, or the settings of a MeshStandardMaterial for one
+// that isn't plain matte (polished metal, a glow).
 //
-//   const rock = mesh(new THREE.BoxGeometry(1, 1, 1), '#8a8a8a', 'a grey rock, colored pencil', { position: [0, 0.5, 0] });
-//   const ruin = group('a ruined temple, colored pencil', column, arch);
-//   const slabs = instanced(new THREE.BoxGeometry(1, 1, 1), '#c4b497', 'a stone slab', [{ position: [0, 0, 0] }, ...]);
+//   const rock = mesh(new THREE.BoxGeometry(1, 1, 1), '#8a8a8a', 'grey rock', { position: [0, 0.5, 0] });
+//   const sword = mesh(bladeGeometry, { color: '#9aa2aa', metalness: 1, roughness: 0.4 }, 'steel sword');
+//   const ruin = group('ruined temple', column, arch);
+//   const slabs = instanced(new THREE.BoxGeometry(1, 1, 1), '#c4b497', 'stone slabs', [{ position: [0, 0, 0] }, ...]);
 import * as THREE from 'three';
 
-// A mesh with its own material (so its colour can change alone).
+// A mesh with its own material (so its colour or glow can change alone).
 // `o`: { position: [x,y,z], rotation: [x,y,z], scale: n | [x,y,z], parent }.
-export function mesh(geometry, color, description, o = {}) {
-  const m = new THREE.Mesh(geometry, material(color));
+export function mesh(geometry, surface, description, o = {}) {
+  const m = new THREE.Mesh(geometry, material(surface));
   if (description !== undefined) m.userData.description = description;
   place(m, o);
   return m;
 }
 
-function material(color) {
-  return new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0 });
+// Matte unless the surface says otherwise.
+function material(surface) {
+  const o = typeof surface === 'object' ? surface : { color: surface };
+  return new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0, ...o });
 }
 
 // A group whose description covers every mesh under it that has none.
@@ -26,10 +31,10 @@ export function group(description, ...children) {
   return g;
 }
 
-// Many copies of one shape, one colour and one description: one draw, and
+// Many copies of one shape, one surface and one description: one draw, and
 // each copy counts as one object. `items`: [{ position, rotation?, scale?, color? }].
-export function instanced(geometry, color, description, items) {
-  const m = new THREE.InstancedMesh(geometry, material(color), items.length);
+export function instanced(geometry, surface, description, items) {
+  const m = new THREE.InstancedMesh(geometry, material(surface), items.length);
   const t = new THREE.Object3D(), c = new THREE.Color();
   items.forEach((it, i) => {
     t.position.set(...(it.position ?? [0, 0, 0]));

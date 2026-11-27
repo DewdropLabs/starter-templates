@@ -34,81 +34,109 @@ public/sounds/
 
 ## The look, clause by clause
 
-On Dewdrop the look comes from the style prompt, the background colour and
-description, and each mesh's colour and description; lights, textures and fog
-don't show.
-The prompt (`PROMPT` in `src/look.js`):
+On Dewdrop the look comes from the lights, each mesh's colour and surface,
+the style prompt, and the words on each thing and on the sky. The prompt
+(`PROMPT` in `src/look.js`):
 
 ```
-style: colored pencil drawing on textured cream paper. Visible pencil hatching and
-cross-hatching, grainy paper tooth showing through, warm earthy colors with saturated
-orange and red accents, a dramatic fantasy illustration of a lone knight facing a huge
-dragon on a ruined cliff top.
+style: Colored pencil sketch on textured cream paper with warm dusk light. A ruined
+cliff-top fortress at dusk, viewed from a low angle over the shoulder.
 ```
 
-- **colored pencil drawing on textured cream paper**: the medium and the ground. The
-  sky colour is the same cream (`#e9d3ad`), so the paper is everywhere.
-- **visible pencil hatching and cross-hatching**: the stroke. It turns flat colours into
-  shading.
-- **grainy paper tooth showing through**: keeps it a drawing, not a painting. It only
-  works with mid-value colours (below).
-- **warm earthy colors with saturated orange and red accents**: the palette in words,
-  matching the colours: earthy stone, a red dragon, orange fire.
-- **a dramatic fantasy illustration of a lone knight facing a huge dragon on a ruined
-  cliff top**: the subject and its scale, so the shapes are read as what they are.
+- **Colored pencil sketch on textured cream paper**: the medium and the ground.
+  The sky is the same cream (`#e9d3ad`), so the paper is everywhere.
+- **with warm dusk light**: the light, the same as the scene's lights (below).
+- **A ruined cliff-top fortress**: the scene, broadly. The dragon and the knight
+  aren't named: their own words say what they are.
+- **at dusk**: the hour, which the low sun and the violet sky repeat.
+- **viewed from a low angle over the shoulder**: what the lock-on camera shows.
 
-The background: `#e9d3ad`, "textured cream drawing paper, a dramatic smoky sky hatched
-in pale ochre, dusky orange and soft violet colored pencil, distant ash clouds". The sky
-comes out as diagonal hatching on cream paper. The far peaks are real cones 260–420 m
-out.
+The background: `#e9d3ad`, described as "smoky dusk sky with distant ash
+clouds". It comes out as hatched smoke on cream paper. The far peaks are real
+cones 260–420 m out.
+
+## Light
+
+Set in `LIGHT` in `src/look.js`, added in `game/index.js`:
+
+- **A warm, low sun** (`#ffb36e`, a `DirectionalLight` about 17° up) from over
+  the knight's left shoulder where he starts, so the dragon's chest and head
+  are lit from the side and the columns throw long shadows across the floor.
+  `userData.angle` 0.03 softens the shadow edges.
+- **A violet sky** (`HemisphereLight`, `#8f7ed8` over `#a8907a`) at half the
+  sun: the shaded sides go cool and violet, the lit ones warm. Cream stone
+  in the warm sun can pass for wood, so its words say limestone.
+- **Fire lights the arena.** Every flame is a glowing mesh, and lights what's
+  round it. While the dragon breathes, a `PointLight` (`#ff8a1a`) rides with
+  the jet and throws orange over the floor and the dragon; the blue torrent at
+  the end has a blue one where it lands.
+- **The breath glows from inside.** As the dragon draws breath its chest,
+  belly, throat and the seams between its plates glow orange (`emissive`,
+  `setGlow` in `game/dragon.js`), and its eyes glow yellow while it lives.
+  The blue dragon's chest blazes icy blue as it breathes in for the last
+  torrent.
 
 ## Colour
 
-Colour carries the most. The rules here:
+Every material is its everyday colour; the light does the rest.
 
-- **Mid values, so the paper shows through the hatching**: slabs `#c4b497`, columns
-  `#cdbf9f`, peaks `#9b97a6` / `#b8b0b4` (hatched violet pyramids), the dragon
-  `#9a2c1c` with an ochre belly `#c98a4c` and bone horns and claws `#e2d2ae`, the
-  knight's steel `#9aa2aa`, his tabard and cloak `#2f5cb0` / `#2b3f72`.
+- **Mid values, so the paper shows through the hatching**: slabs `#c4b497`,
+  columns `#cdbf9f`, peaks `#9b97a6`, the dragon `#9a2c1c` with an ochre belly
+  `#c98a4c` and bone horns and claws `#e2d2ae`, the knight's tabard and cloak
+  `#2f5cb0` / `#2b3f72`.
+- **Steel is metal**: the armor `#9aa2aa` at metalness 1 and roughness 0.4, the
+  blade a paler steel, the crossguard gold. Matte things are at
+  roughness 0.85 (`src/core/look.js`).
 - **One strong colour per object**, named again in its words.
-- **The fire is the most saturated thing in the frame**, so it reads as light:
-  `#f0501a`, `#ff8a1a`, `#ffd23a`. A glow is a colour too: for the breath the chest goes
-  to `#ffa62a`, the belly `#ffd23a`, the seams between its plates `#fff2a0`.
-- **The blue dragon is brighter and more saturated than the red** (`#2a52e0`, its fire
-  `#2a6cff` / `#4fc8ff` / `#eafcff`), so it still reads as plainly blue once hatched
-  over cream. The hard cut is to its deepest blue, not black.
+- **The fire is the most saturated thing in the frame**: glowing tongues in
+  `#f0501a`, `#ff8a1a` and an amber `#ffb02a` (`glow()` and `GLOW` in
+  `src/look.js`). A glowing lemon yellow (`#ffd23a`) comes out green-yellow
+  in the hatching.
+- **The blue dragon is brighter and more saturated than the red** (`#2a52e0`,
+  its fire `#2a6cff` / `#4fc8ff` / `#eafcff`), so it still reads as plainly blue
+  once hatched over cream. The hard cut is to its deepest blue, not black.
 
 ## Words
 
-Every description is the thing as the camera sees it, its one colour, and the medium:
+Each description is one plain string, in the rich form: the thing with its
+colour and what it's made of, and nothing about the light or the medium.
 
-- "the huge armored body of a great red dragon, deep crimson scales hatched with dark
-  umber colored pencil"
-- "the back of a knight's steel great helm, grey colored pencil hatching"
-- "a distant jagged mountain peak, hatched in pale blue-violet colored pencil"
+- "cracked square stone floor slabs", "broken fluted pale limestone columns",
+  "distant jagged blue-violet mountain peaks"
+- "huge red dragon with crimson scales and ivory horns"
+- "lone knight seen from behind in steel armor and blue cloak"
 
-The rule: name the medium in every description, and say what you'd see from where the
-camera is ("the back of", "the underside of"). When something changes, its words
-change with it: the chest's words become "glowing molten orange from within" as it
-glows, and a dead dragon's eyes become "a dark heavy-lidded slit".
+The dragons and the knight are close to the camera, so their parts are named
+as parts of them: "head of the huge red dragon with crimson scales and ivory
+horns", "helmet of the lone knight seen from behind in steel armor and blue
+cloak". Horns, teeth and spikes go with the part they're on. Every mesh of one
+thing has the same string (a description on a group covers what's under it),
+and several of a kind share a plural: "tumbled broken limestone blocks".
+
+Only glowing things have light in their words, and the words change with
+them: as the blue dragon breathes in, its chest's become "icy blue-white fire
+glowing inside the dragon's chest", and a dead dragon's eyes "closed eye of
+the ...".
+The sword and shield are things of their own: "long steel sword with gold
+crossguard", "blue heater shield with gold sun emblem".
 
 ## Shapes
 
-- **What reads at once**: the dragon (crimson pencil with umber hatching, ivory horns
-  and claws, a yellow eye), its head in profile (a swept tube snout, a hinged jaw,
-  cone teeth), and the knight from behind (a flat-topped great helm, round pauldrons,
-  a blue cloak, a shield with a gold sun, a sword).
+- **What reads at once**: the dragon (crimson with ivory horns and claws, a
+  glowing yellow eye), its head in profile (a swept tube snout, a hinged jaw,
+  cone teeth), and the knight from behind (a flat-topped great helm, round
+  pauldrons, a blue cloak, a shield with a gold sun, a sword).
 - **Flames**: short fat lathe tongues come out as orange balls or a caterpillar. Long
   pointed tongues in three-tip clusters (`flameClusterGeometry`) read as flames.
 - **A head pointed at a low camera** is just the underside of a jaw, a red spike. Roars
   turn it side-on (`sideOn` in `brain.js`).
-- **Near-black nostrils** (`#1a0d08`) read as eyes, a cartoon face. Keep them small and
-  dark red, and the real eyes big and bright.
+- **Near-black nostrils** read as eyes, a cartoon face. Keep them small and dark red
+  (`#5a1410`), and the real eyes big and glowing.
 - **Big dark scorch marks** (`#3b2d24`) read as holes. Lighter `#857060`, narrower streaks
   read as scorch.
-- **Small fast things smear**: the sparks are a few fat shards that live a third of a
-  second, the hit's starburst is big and holds through the hit-stop, the slash is a
-  broad crescent, not a line.
+- **Small fast things smear**: the sparks are a few fat glowing shards that live a
+  third of a second, the hit's starburst is big and holds through the hit-stop, the
+  slash is a broad glowing crescent, not a line.
 - **Huge flames close to the lens** become big flat shapes: fine for the very last
   frame, not before. The jets shrink away within 2.2 m of the camera.
 
@@ -124,12 +152,15 @@ glows, and a dead dragon's eyes become "a dark heavy-lidded slit".
 
 ## Make it yours
 
-1. **The medium**: change `PROMPT` and `SKY_WORDS` in `src/look.js`, and the medium in
-   every description below them (search for "colored pencil"). Words that disagree with
-   the prompt pull the frame two ways.
-2. **The palette**: change `C` in `src/look.js`. Keep things mid-value against a light
+1. **The light**: change `LIGHT` in `src/look.js`. Swing the sun round with `from`, or
+   drop it toward the horizon and warm it for a sunset; turn both down and fix
+   `renderer.exposure` for a night fight lit by the fire alone
+   (https://alpha.dewdrop.world/docs/lighting).
+2. **The medium**: change `PROMPT` in `src/look.js`, and `SKY_WORDS` and `SKY` with it.
+   The words on things name no medium, so they carry over.
+3. **The palette**: change `C` in `src/look.js`. Keep things mid-value against a light
    ground, and the fire the most saturated colour on screen.
-3. **The cast**: the descriptions in `DRAGON`, `BLUE_DRAGON` and `KNIGHT` decide what
+4. **The cast**: the descriptions in `DRAGON`, `BLUE_DRAGON` and `KNIGHT` decide what
    the shapes are drawn as: a wyvern, an armored beetle, a samurai.
 
 `npm run dev` uploads it to Dewdrop and prints a link to play it
