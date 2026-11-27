@@ -1,18 +1,18 @@
 // What Golden Glide's player flies at: the wind rings, the updrafts and the
-// setting sun.
+// setting sun that lights it all.
 //
 //   const rings = new Rings(root);            // one per RINGS entry (route.js)
 //   rings.burst(ring, speed)                  // through it: the hoop bursts into ribbon scraps (speed: the glider's, m/s)
 //   rings.frame(dt, t, camera, flight);       // glow when lined up, scraps, keep clear of the lens
 //   const lifts = new Updrafts(root, world.groundAt);
 //   lifts.strength(position)                  // 0..1: how much the column lifts here
-//   const sun = new Sun(root);  sun.frame(camera, sink)   // sink 0 high … 1 touching the hills
+//   const sun = new Sun(root);  sun.frame(camera, sink)   // the light and the disc; sink 0 high … 1 touching the hills
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mesh, group } from '../core/look.js';
 import { rng, damp, ease, lensScale, smoothstep } from '../core/util.js';
 import { RINGS, UPDRAFTS, frameAt, toWorld } from './route.js';
-import { gold, LEAF_COLORS } from '../look.js';
+import { LEAF_COLORS, SUN_LIGHT, skyLight } from '../look.js';
 
 const RING_R = 4;        // ring radius (m): 8 m across
 const TUBE = 0.38;
@@ -20,8 +20,9 @@ const STRIPES = 12;
 const LENS = { from: 15, to: 5 };   // m from the camera to the tube: a ring not being threaded shrinks between these
 const DOOMED = { within: 12, margin: 1.5 };  // m: a ring this close ahead, and missed by this much more than a hit, starts to go
 const SCRAP_CLEAR = { to: 9, from: 13 };  // m from the camera: a scrap shrinks away between these (a near scrap is a big flat slab across the sky)
-const RED = gold('#cc3c28'), CREAM = gold('#f6ecd6'), GOLD = gold('#f2b640');
+const RED = new THREE.Color('#c23a2a'), CREAM = new THREE.Color('#f4ecdc'), GOLD = new THREE.Color('#e8b040');
 const GLOW = new THREE.Color('#e8891a');
+const GLOW_INTENSITY = 1.5;   // a lined-up ring's cream stripes, and a burst's flash, glow amber up to this
 
 const stripeGeos = (() => {
   const arc = (Math.PI * 2) / STRIPES;
@@ -45,16 +46,16 @@ export class Rings {
   constructor(root) {
     this.items = RINGS.map(([s, lat, vert, { size = 1, aim = [lat, vert] } = {}], i) => {
       const center = toWorld(s, lat, vert);
-      const g = group('a big round wooden hoop wrapped in red and cream striped ribbon, a target to fly through');
+      const g = group('big round wooden hoop wrapped in red and cream striped ribbon');
       g.position.copy(center);
       g.rotation.y = frameAt(s, {}).yaw;
-      const cream = mesh(stripeGeos[1], CREAM.clone());
+      const cream = mesh(stripeGeos[1], CREAM.clone(), undefined, { glow: [GLOW, 0] });
       // A pennant on a short pole at the top, flat to the camera.
-      const flag = new THREE.Group();
+      const flag = group('small red pennant flag on short wooden pole');
       flag.position.y = RING_R + TUBE;
-      flag.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.6, 6).translate(0, 0.8, 0), gold('#6a4a30'), 'a short wooden flagpole'));
+      flag.add(mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.6, 6).translate(0, 0.8, 0), '#6a4a30'));
       const cloth = mesh(new THREE.ShapeGeometry(new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(1.3, -0.35), new THREE.Vector2(0, -0.75)])),
-        RED.clone(), 'a small red pennant flag fluttering in the wind', { position: [0.05, 1.6, 0] });
+        RED.clone(), undefined, { position: [0.05, 1.6, 0] });
       cloth.material.side = THREE.DoubleSide;
       flag.add(cloth);
       g.add(mesh(stripeGeos[0], RED.clone()), cream, flag);
@@ -68,7 +69,7 @@ export class Rings {
     // Two bursts' worth of scraps, reused (rings are seconds apart).
     this.scraps = [];
     for (let k = 0; k < SCRAPS * 2; k++) {
-      const m = mesh(scrapGeo, GLOW.clone(), 'a broad length of cream and gold ribbon flung out on the wind');
+      const m = mesh(scrapGeo, GLOW.clone(), 'broad flying lengths of cream and gold ribbon', { glow: [GLOW, 0] });
       m.visible = false;
       root.add(m);
       this.scraps.push({ mesh: m, age: SCRAP_LIFE, base: k % 2 ? GOLD : CREAM, dir: new THREE.Vector3(), vel: new THREE.Vector3(), out: 0, spin: 0 });
@@ -109,11 +110,12 @@ export class Rings {
       const ds = ring.s - flight.s, m = Math.hypot(ring.lat - flight.lat, ring.vert - flight.vert);
       // Lined up on the next ring as it comes close, its cream stripes glow
       // amber and it swells a little (a promise: the score comes only at the
-      // crossing).
+      // crossing). Only the stripes: a whole hoop aglow is a wash on the sky.
       const lineUp = ring.r - 0.6, hit = ring.hit;
       const want = ring === next ? smoothstep(28, 10, ds) * smoothstep(lineUp + 0.6, lineUp - 0.6, m) : 0;
       ring.glow = damp(ring.glow, want, 10, dt);
       ring.cream.material.color.copy(CREAM).lerp(GLOW, ring.glow);
+      ring.cream.material.emissiveIntensity = ring.glow * GLOW_INTENSITY;
       ring.pulse += dt * (2 + ring.glow * 5);
       // Going: missed already, or so close ahead and so far off that it will be.
       const doomed = ring.state === 'missed' || (ring.state === 'ready' && ds < DOOMED.within && m > hit + DOOMED.margin);
@@ -135,8 +137,10 @@ export class Rings {
       m.position.addScaledVector(sc.vel, dt).addScaledVector(sc.dir, sc.out * dt);
       sc.out *= Math.exp(-1.6 * dt);
       m.rotateZ(sc.spin * dt);
-      // A flash of gold, settling to the ribbon's own colour, then shrinking away.
-      m.material.color.copy(GLOW).lerp(sc.base, smoothstep(0.15, 0.6, k));
+      // A flash of glowing gold, settling to the ribbon's own colour, then shrinking away.
+      const settle = smoothstep(0.15, 0.6, k);
+      m.material.color.copy(GLOW).lerp(sc.base, settle);
+      m.material.emissiveIntensity = (1 - settle) * GLOW_INTENSITY;
       // (And shrinking away as the camera closes on it, rather than popping out.)
       const near = lensScale(m.position.distanceTo(camera.position), SCRAP_CLEAR);
       m.scale.setScalar(Math.max(0.001, (1 - ease.inCubic(smoothstep(0.55, 1, k))) * near));
@@ -174,7 +178,7 @@ export class Updrafts {
       const base = groundAt(c.x, c.z);
       const leaves = [];
       for (let k = 0; k < 34; k++) {
-        const m = mesh(leafGeo, gold(r.pick(LEAF_COLORS)), 'a big pointed golden autumn leaf swirling up on the warm rising wind');
+        const m = mesh(leafGeo, r.pick(LEAF_COLORS), 'big pointed golden autumn leaves swirling upward');
         m.material.side = THREE.DoubleSide;
         root.add(m);
         leaves.push({ mesh: m, a: r.range(0, Math.PI * 2), rad: r.range(4, COLUMN_R - 1), h: r.range(0, 1), rise: r.range(0.1, 0.16), spin: r.range(0.7, 1.1), tilt: r.range(0, 6) });
@@ -215,18 +219,25 @@ export class Updrafts {
 
 // ---------- the sun ----------
 
-const SUN_HIGH = 9.5, SUN_LOW = 4.8; // degrees above the ground plane, at the start and touching the hills
+const SUN_HIGH = 9.5, SUN_LOW = 4.8; // the disc: degrees above the ground plane, at the start and touching the hills
 const SUN_AZ = -0.13;                // rad from -z (+ toward +x)
 export const SUN_DIST = 3200;        // m: always this far off horizontally from the camera, toward SUN_DIR
 export const SUN_DIR = new THREE.Vector3(Math.sin(SUN_AZ), 0, -Math.cos(SUN_AZ));
-// The sun's height (m) at a sink (0..1): with SUN_DIST, where it is seen from any camera.
+// The disc's height (m) at a sink (0..1): with SUN_DIST, where it is seen from any camera.
 export const sunHeight = (sink) => Math.tan(THREE.MathUtils.degToRad(SUN_HIGH + (SUN_LOW - SUN_HIGH) * sink)) * SUN_DIST;
 
-// A big glowing disc far off toward the sunset, kept at the same bearing
-// from the camera (so it sits at infinity), sinking as the flight goes on.
+// The setting sun: a low warm DirectionalLight from the sunset's bearing
+// (SUN_LIGHT in look.js) with the cool sky light under it, and a big glowing
+// disc far off on the same bearing, kept there from the camera (so it sits
+// at infinity). Both sink as the flight goes on. (The disc sits a few degrees
+// lower than the light: low enough to show above the rings in the chase
+// view, while the light stays high enough to light the land.)
 export class Sun {
   constructor(root) {
-    this.disc = mesh(new THREE.CircleGeometry(1, 48), '#ffb347', 'a huge glowing deep orange-gold setting sun, radiant and soft', { scale: 260 });
+    this.light = new THREE.DirectionalLight(SUN_LIGHT.color, SUN_LIGHT.intensity);
+    this.light.userData.angle = SUN_LIGHT.angle;
+    root.add(this.light, this.light.target, skyLight());
+    this.disc = mesh(new THREE.CircleGeometry(1, 48), '#000000', 'huge glowing orange-gold setting sun', { scale: 260, glow: ['#ffb347', 4] });
     root.add(this.disc);
   }
 
@@ -238,5 +249,7 @@ export class Sun {
   frame(camera, sink) {
     this.disc.position.set(camera.position.x + SUN_DIR.x * SUN_DIST, sunHeight(sink), camera.position.z + SUN_DIR.z * SUN_DIST);
     this.disc.lookAt(camera.position);
+    const up = THREE.MathUtils.degToRad(SUN_LIGHT.high + (SUN_LIGHT.low - SUN_LIGHT.high) * sink);
+    this.light.position.set(SUN_DIR.x * Math.cos(up), Math.sin(up), SUN_DIR.z * Math.cos(up)).multiplyScalar(100);
   }
 }

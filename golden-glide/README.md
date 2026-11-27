@@ -31,69 +31,94 @@ public/sounds/
 
 ## The look, clause by clause
 
-On Dewdrop the look comes from the style prompt, the background colour and
-description, and each mesh's colour and description; lights don't show there.
-The prompt (`PROMPT` in `src/look.js`):
+On Dewdrop the look comes from the light and colours first, then the shapes,
+then each mesh's words, then the style prompt. The prompt (`PROMPT` in
+`src/look.js`):
 
 ```
-style: gouache animation background art. A golden countryside at sunset seen
-from the air: a low deep orange sun, long shadows, glowing gold highlights and
-cool blue-green shade, soft painterly brushwork.
+style: Gouache animation background art with warm golden-hour lighting. A
+rolling countryside at sunset, long shadows, backlit by the low sun, aerial
+view from above and behind.
 ```
 
-- **gouache animation background art**: the medium: opaque, matte painted
+- **Gouache animation background art**: the medium: opaque, matte painted
   backgrounds, which turn big plain shapes into painted land and sky.
-- **a golden countryside at sunset seen from the air**: the subject and the
-  viewpoint, matching what the chase camera shows.
-- **a low deep orange sun, long shadows**: the hour, which the sun disc and the
-  baked colours repeat.
-- **glowing gold highlights and cool blue-green shade**: the two-tone light the
-  colours carry too (below): the same light in the words and in the colours.
-- **soft painterly brushwork**: the surface, brush texture over it all.
+- **with warm golden-hour lighting**: its light, the same light the scene's
+  sun and sky give (below).
+- **A rolling countryside at sunset**: the scene, broadly. The fields, the
+  windmill and the village aren't named here: each has words of its own.
+- **long shadows, backlit by the low sun**: the hour and where the light
+  comes from, as the lights have it.
+- **aerial view from above and behind**: the chase camera's angle.
 
-Background `#e2c08e`, described as *soft blue overhead fading through peach to
-deep orange and glowing gold at the horizon, a huge glowing orange-gold sun low
-on the horizon, long shadows across the golden land*. The gradient comes from
-the words. The sun is also a mesh: a 260 m disc 3.2 km off, kept at the same
-bearing from the camera (`Sun` in `game/course.js`), sinking with the flight.
+Background `#dbc79e`, a warm peach, described as *soft blue sky fading to
+glowing gold at horizon with low golden sun*. The gradient comes from the
+words.
+
+## Light
+
+The low sun does the work (`Sun` in `game/course.js`, its settings
+`SUN_LIGHT` and `SKY_LIGHT` in `src/look.js`):
+
+- **The sun**: a `DirectionalLight`, warm `#ffb470` at 3, 15° above the
+  horizon at the start and sinking to 12° as the glider touches down. It
+  shines from the sunset's bearing, just left of straight ahead, so the view
+  looks into it: tops and far faces catch gold, near sides are in shade, and
+  the shadows of trees, houses and hills run long toward the camera. Light
+  from the side reads as a plain afternoon. Its `userData.angle` of 0.03
+  softens the shadows' edges, as a hazy evening sun does.
+- **The sky**: a `HemisphereLight`, sky `#9cc8d4` and ground `#8aa486`, at
+  0.6, a fifth of the sun: the cool blue-green the shade takes.
+- **The sun in the sky**: a 260 m glowing disc 3.2 km off, kept at the same
+  bearing from the camera (`Sun.frame`), sinking with the flight. It sits a
+  few degrees below the light, low enough to show over the rings in the
+  chase view, and it's what puts the sun inside the last ring at the climax.
+- **Clouds face away from the sun**, so the side the camera sees is in shade
+  and comes out storm grey. A faint warm glow (`#ffe8d0` at 2.4) keeps them
+  white cumulus. The far hills are pale `#c4c8b4` for the same reason: in
+  shade, darker ones read as a dark band under the sky.
+- **Glow only where it counts**: a lined-up ring's cream stripes glow amber
+  `#e8891a` (a whole hoop glowing reads as a peach wash on the sky), and so
+  does a burst's ribbon for a moment; the cottage's window glows warm and
+  lights the sill and grass in front of it; and a battered glider's flames
+  glow.
 
 ## Colour
 
-Colour carries the most. The light is the
-[Golden hour](https://alpha.dewdrop.world/docs/recipes#golden-hour) recipe
-baked into base colours in `src/look.js`: `gold()` is daylight × (1.0, 0.86,
-0.66); `sunBands()` splits a shape's faces into toward the sun × (1.1, 0.9,
-0.6), side-on × the golden recipe and away × (0.7, 0.76, 0.84); `haze()`
-fades toward `#edc79a` with distance from the line (about 420 m). The sun is
-low and ahead, so the camera mostly sees shaded sides with gold catching tops
-and far faces.
+Every material has its everyday colour, matte (roughness 1: `mesh()` in
+`src/core/look.js`); the low sun makes them golden.
 
-- **Ochre and olive-gold, not green**: meadow `#a8a84a`, hills `#a8a24a`, tree
-  crowns `#6f8a3a`. Greens read as a spring meadow, not the end of a summer's day.
-- **Contrast for small things**: gold on a warm sky is low contrast, so the
-  glider (`#c23a2a`) and rings (`#cc3c28`) are red and cream (honey wood on
-  gold ground reads as nothing).
-- **Mid values for darks**: the pilot's jacket is tan `#9a6638` and the leaves
-  warm light golds; darker browns read as a blob or as mud.
-- **Glow only where it counts**: a lined-up ring's cream stripes go amber
-  `#e8891a`. A whole hoop glowing pale gold reads as a peach wash on the sky.
+- **Late summer, not spring**: meadow `#a09a4a` and hills `#a09848`, olive
+  going to straw, tree crowns `#56732f`, ripe wheat `#d8b45a`, stubble
+  `#cbb07a`. Fresh greens read as a spring meadow, not the end of a summer's day.
+- **Contrast for small things**: the land and sky are warm and gold, so the
+  glider (`#c23a2a`) and rings are red and cream; honey wood on gold ground
+  reads as nothing.
+- **Mid values for darks**: the pilot's jacket is tan `#9a6638`; darker
+  browns read as a blob or as mud.
+- **A little shine where it helps**: the river (roughness 0.2) catches the
+  low sun ahead, and the glider's painted fuselage (0.55) a sheen.
 - **Grey storm, not cream**: the tornado is storm grey `#7a7470` with ochre
   dust at its foot; pale cream reads as pastry.
 
 ## Words
 
-Each description says what the thing is, its colour, and how the low sun lights it:
+Each description is one plain string in the rich form, 4 to 12 words: the
+thing with its colour, material and shape, and no words about the light (the
+lights do that):
 
-- *a field of ripe golden wheat glowing in the low evening sun*
-- *a rolling hill of golden-olive grass, bathed in deep orange evening sunlight*
-- *a towering billowing cumulus cloud, lit peach and gold by the setting sun, soft lilac shade*
-- *the long soft cool shadow of a tree stretching across the grass in the evening*
+- *field of ripe golden wheat*
+- *gently rolling hill of dry olive green grass*
+- *big round leafy green trees on short trunks*
+- *towering billowing white cumulus clouds*
 
-The rule: repeat the light in every description, so the whole frame agrees on
-the hour, and name the material plainly (canvas, painted wood, sandstone,
-thatch). One description covers a whole object (`group()` in
-`src/core/look.js`); parts get their own only where they must read on their
-own (the pennant, a wing's red leading edge, the lit cottage window).
+One description covers a whole thing, on its group (`group()` in
+`src/core/look.js`): a windmill's door and hub take the tower's and sails'
+words, a bridge's parapets the bridge's. Many small things of a kind share a
+plural: the trees, the houses' roofs, the leaves, the straw. Specks, such as
+the goggles and the weathervane, get none. The pilot, close to the camera,
+names each part as the pilot's: *helmet of the young pilot in tan leather
+helmet, jacket and yellow scarf*.
 
 ## Shapes
 
@@ -132,11 +157,13 @@ own (the pennant, a wing's red leading edge, the lit cottage window).
 
 ## Make it yours
 
-1. **The prompt and the sky** (`PROMPT`, `SKY`, `SKY_WORDS` in `src/look.js`).
-   Change the medium or the hour here first, and say the light you want.
-2. **The light recipe** (`GOLD` and `BANDS` in `src/look.js`). Every colour in
-   the world passes through it; keep it in step with the prompt's light.
-3. **The words and base colours of the big things**: the fields, hills and
+1. **The light** (`SUN_LIGHT` and `SKY_LIGHT` in `src/look.js`). Change the
+   hour here first: a higher, whiter sun and a brighter sky for midday; no
+   sun, a faint blue sky and glowing windows for night (then fix the
+   exposure, https://alpha.dewdrop.world/docs/lighting#a-fixed-exposure).
+2. **The prompt and the sky** (`PROMPT`, `SKY`, `SKY_WORDS` in
+   `src/look.js`). Say the medium and the same light the lights give.
+3. **The words and colours of the big things**: the fields, hills and
    trees (`W` and `CROPS` in `src/game/world.js`) and the glider (`C` in
    `src/game/glider.js`). Rewrite them in your style's own words.
 

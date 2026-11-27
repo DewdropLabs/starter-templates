@@ -14,24 +14,24 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mesh, instanced, group } from '../core/look.js';
 import { rng } from '../core/util.js';
 import { toWorld, nearest, frameAt, heightAt, S_TOUCH, WINDMILL } from './route.js';
-import { gold, sunBands, bandColor, haze, HAZE } from '../look.js';
 
+// Everyday colours of late summer: the low sun makes them golden.
 const W = {
-  meadow: '#a8a84a',
-  hill: ['#a8a24a', '#9a9a44', '#b4a852'],
-  crown: ['#6f8a3a', '#7a8e3e', '#627e36'],
+  meadow: '#a09a4a',
+  hill: ['#a09848', '#948e42', '#aaa250'],
+  crown: ['#56732f', '#5f7a33', '#4e6a2b'],
   trunk: '#5a4430',
-  river: '#6fa6b8',
-  lane: '#dcc28e',
+  river: '#4f7f8c',
+  lane: '#cbb48a',
 };
 
 const CROPS = [
-  ['#e2bc56', 'a field of ripe golden wheat glowing in the low evening sun'],
-  ['#a2ac4c', 'an olive-gold pasture field of short dry grass, warm evening light'],
-  ['#b8b85a', 'a field of ripening barley turning gold'],
-  ['#9c7550', 'a ploughed brown field with neat furrows, long evening light'],
-  ['#d4b474', 'a field of pale golden stubble with round hay bales'],
-  ['#e6d24a', 'a field of yellow flowering rapeseed'],
+  ['#d8b45a', 'field of ripe golden wheat'],
+  ['#8e9c48', 'pasture field of short dry olive grass'],
+  ['#b0b05a', 'field of ripening green-gold barley'],
+  ['#8c6a4a', 'ploughed brown field with neat furrows'],
+  ['#cbb07a', 'field of pale stubble with round hay bales'],
+  ['#e0cc3c', 'field of yellow flowering rapeseed'],
 ];
 const CROP_ODDS = [0.32, 0.12, 0.1, 0.12, 0.18, 0.16];  // (wheat, stubble and rapeseed: two thirds)
 
@@ -78,17 +78,17 @@ export function buildCountryside(root) {
   };
 
   // ---------- ground ----------
-  const ground = mesh(new THREE.PlaneGeometry(5200, 5200).rotateX(-Math.PI / 2), gold(W.meadow),
-    'rolling golden-green grassland bathed in deep orange evening sunlight, long shadows across it', { position: [0, 0, -900] });
+  const ground = mesh(new THREE.PlaneGeometry(5200, 5200).rotateX(-Math.PI / 2), W.meadow,
+    'rolling grassland of dry late summer grass', { position: [0, 0, -900] });
   root.add(ground);
 
   // ---------- the river: in from the left into the valley, along under the line, then away toward the sunset ----------
   const riverPts = [[98, -330], [158, -170], [197, -60], [224, -10], [259, -3], [300, 2], [345, -2], [390, 3], [435, -1],
     [480, 2], [518, -10], [570, -60], [645, -120], [750, -170], [900, -230], [1125, -280]].map(([s, lat]) => at(s, lat).setY(0));
   const river = new THREE.CatmullRomCurve3(riverPts, false, 'centripetal').getSpacedPoints(260);
-  root.add(mesh(ribbon(river, 18, () => 0.22), gold(W.river),
-    'a calm winding river, its water glinting gold and peach with the reflected sunset sky'));
-  root.add(mesh(ribbon(river, 26, () => 0.12), gold('#7a8640'), 'olive green reeds and long grass along the riverbank'));
+  // (Smooth water, so it catches the low sun ahead.)
+  root.add(mesh(ribbon(river, 18, () => 0.22), W.river, 'calm winding river of clear water', { roughness: 0.2 }));
+  root.add(mesh(ribbon(river, 26, () => 0.12), '#6c7a3a', 'olive green reeds and long grass along riverbank'));
 
   // ---------- the lane: from the village, across the line over the bridge, and away left ----------
   const lanePts = [[585, 70], [559, 60], [518, 52], [480, 34], [459, 14], [454, 0], [450, -16], [444, -50], [428, -100],
@@ -128,18 +128,15 @@ export function buildCountryside(root) {
   }
   const dome = new THREE.SphereGeometry(1, 40, 12, 0, Math.PI * 2, 0, Math.PI / 2);
   hills.forEach((H, i) => {
-    const geo = dome.clone().scale(H.rx, H.ry, H.rz).translate(H.x, H.cy, H.z);
-    const base = W.hill[i % W.hill.length], d = nearest(H.x, H.z).d;
-    const g = group('a rolling hill of golden-olive grass, bathed in deep orange evening sunlight');
-    sunBands(geo).forEach((b, k) => { if (b) g.add(mesh(b, haze(bandColor(base, k), d))); });
-    root.add(g);
+    root.add(mesh(dome.clone().scale(H.rx, H.ry, H.rz).translate(H.x, H.cy, H.z), W.hill[i % W.hill.length],
+      'gently rolling hill of dry olive green grass'));
   });
   // The far hills on the horizon, where the sun sets.
-  const ridge = group('distant blue-green hills softened by the warm golden evening haze');
+  const ridge = group('distant blue-green hills on the horizon');
   for (let i = 0; i < 9; i++) {
     const x = -1500 + i * 375 + r.range(-80, 80), z = -1650 + r.range(-120, 80);
     const rx = r.range(260, 380), ry = r.range(55, 95);
-    ridge.add(mesh(dome.clone().scale(rx, ry, 140).translate(x, -10, z), new THREE.Color('#8fa48a').lerp(HAZE, 0.45)));
+    ridge.add(mesh(dome.clone().scale(rx, ry, 140).translate(x, -10, z), '#c4c8b4'));
   }
   root.add(ridge);
 
@@ -161,12 +158,12 @@ export function buildCountryside(root) {
       let k = 0;
       for (let roll = r(), acc = 0; k < CROPS.length - 1; k++) { acc += CROP_ODDS[k]; if (roll < acc) break; }
       const w = cw - r.range(3, 6), dd = cd - r.range(3, 6);
-      fieldItems[k].push({ position: [x, 0.3, z], rotation: [0, -turn, 0], scale: [w, 1, dd], color: haze(gold(CROPS[k][0]), d) });
+      fieldItems[k].push({ position: [x, 0.3, z], rotation: [0, -turn, 0], scale: [w, 1, dd] });
       fieldCells.push({ x, z, d });
     }
   }
   const slab = new THREE.BoxGeometry(1, 0.3, 1);
-  CROPS.forEach(([, words], k) => { if (fieldItems[k].length) root.add(instanced(slab, '#ffffff', words, fieldItems[k])); });
+  CROPS.forEach(([color, words], k) => { if (fieldItems[k].length) root.add(instanced(slab, color, words, fieldItems[k])); });
 
   // ---------- trees: hedgerows along field edges, copses on the hills, willows by the river ----------
   const trees = [];
@@ -211,29 +208,23 @@ export function buildCountryside(root) {
   }
   // (The camera never looks back: keep the count down where it can't see.)
   const shown = trees.filter((t) => t.d < 320);
-  const crownBands = sunBands(new THREE.SphereGeometry(1, 14, 10).scale(1, 0.92, 1));
+  const crownGeo = new THREE.SphereGeometry(1, 14, 10).scale(1, 0.92, 1);
   const trunkGeo = new THREE.CylinderGeometry(0.22, 0.32, 1, 6).translate(0, 0.5, 0);
+  // (Crowns and trunks: one thing, one description.)
+  const TREES = 'big round leafy green trees on short trunks';
   const plant = (list) => {
-    crownBands.forEach((geo, band) => {
-      if (geo) root.add(instanced(geo, '#ffffff', 'a big round tree with a full leafy crown, its top glowing gold in the low sun', list.map((t) => ({
-        position: [t.x, t.y + t.rad * 1.35, t.z], scale: t.rad, color: haze(bandColor(W.crown[t.c], band), t.d),
-      }))));
-    });
-    root.add(instanced(trunkGeo, gold(W.trunk), 'a short dark tree trunk',
+    root.add(instanced(crownGeo, '#ffffff', TREES, list.map((t) => ({ position: [t.x, t.y + t.rad * 1.35, t.z], scale: t.rad, color: W.crown[t.c] }))));
+    root.add(instanced(trunkGeo, W.trunk, TREES,
       list.map((t) => ({ position: [t.x, t.y, t.z], scale: [t.rad * 0.6, t.rad * 0.75, t.rad * 0.6] }))));
   };
   plant(shown);
-  // Long evening shadows, pointing away from the low sun (toward the camera).
-  const shadowGeo = new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2).translate(0, 0, 1);
-  root.add(instanced(shadowGeo, '#ffffff', 'the long soft cool shadow of a tree stretching across the grass in the evening',
-    shown.filter((t) => t.y < 0.5).map((t) => ({ position: [t.x, 0.48, t.z + t.rad * 0.4], rotation: [0, 0.12, 0], scale: [t.rad * 0.85, 1, t.rad * 3.2], color: haze(new THREE.Color('#3d5236'), t.d) }))));
   for (const t of trees) stamp(t.x, t.z, t.rad, t.y + t.rad * 2.3);
 
   // ---------- lane and bridge ----------
   // The bridge spans the river right under the line, so its arches face the
   // camera as the glider comes down the river and hops over it.
   const bc = at(454, 0), bridgeYaw = frameAt(454, {}).yaw;
-  const bridge = stoneBridge(bridgeYaw);
+  const bridge = stoneBridge();
   bridge.position.set(bc.x, 0, bc.z);
   bridge.rotation.y = bridgeYaw;
   root.add(bridge);
@@ -244,7 +235,7 @@ export function buildCountryside(root) {
     if (Math.hypot(p.x - bc.x, p.z - bc.z) < 18) { if (runs[runs.length - 1].length) runs.push([]); } else runs[runs.length - 1].push(p);
   }
   for (const run of runs) {
-    if (run.length > 1) root.add(mesh(ribbon(run, 4.5, (p) => groundAt(p.x, p.z) + 0.42), gold(W.lane), 'a pale dusty dirt country lane'));
+    if (run.length > 1) root.add(mesh(ribbon(run, 4.5, (p) => groundAt(p.x, p.z) + 0.42), W.lane, 'pale dusty dirt country lane'));
   }
 
   // ---------- the windmill ----------
@@ -252,7 +243,7 @@ export function buildCountryside(root) {
   // Facing where the camera is as it glances across at it (chase-cam.js),
   // so its sails show full on as the glider passes, not edge-on.
   const wmYaw = Math.atan2(look.x - wc.x, look.z - wc.z);
-  const wm = windmill(wmYaw);
+  const wm = windmill();
   const wTop = groundAt(wc.x, wc.z);
   wm.root.position.set(wc.x, wTop - 0.5, wc.z);
   wm.root.rotation.y = wmYaw;
@@ -263,14 +254,14 @@ export function buildCountryside(root) {
   // ---------- the village and its church ----------
   const village = new THREE.Group();
   const churchYaw = frameAt(592, {}).yaw + 0.15;
-  const church = churchWithSpire(churchYaw);
+  const church = churchWithSpire();
   placeOn(church, at(592, 40), churchYaw, groundAt);
   village.add(church);
   stamp(church.position.x, church.position.z, 12, 30);
   const HOUSES = [[570, 54], [576, 72], [584, 92], [602, 62], [611, 80], [617, 52], [624, 98], [563, 82], [594, 104], [630, 70], [607, 40]];
   for (const [s, lat] of HOUSES) {
     const yaw = frameAt(s, {}).yaw + r.pick([0, Math.PI / 2]) + r.range(-0.2, 0.2);
-    const h = house(r, yaw);
+    const h = house(r);
     const c = at(s + r.range(-3, 3), lat + r.range(-3, 3));
     placeOn(h, c, yaw, groundAt);
     village.add(h);
@@ -280,10 +271,10 @@ export function buildCountryside(root) {
 
   // ---------- the meadow and the cottage ----------
   const mc = at(L + 12, -4);
-  root.add(mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2).scale(42, 1, 90), gold('#b4b250'),
-    'a flowering meadow of long soft golden grass and wildflowers, glowing in the low sun', { position: [mc.x, 0.36, mc.z], rotation: [0, frameAt(L + 12, {}).yaw, 0] }));
+  root.add(mesh(new THREE.CircleGeometry(1, 40).rotateX(-Math.PI / 2).scale(42, 1, 90), '#9ca848',
+    'flowering meadow of long soft grass and wildflowers', { position: [mc.x, 0.36, mc.z], rotation: [0, frameAt(L + 12, {}).yaw, 0] }));
   const cc = at(L + 46, -22), cotYaw = frameAt(L + 46, {}).yaw + Math.PI;
-  const cot = cottage(cotYaw);
+  const cot = cottage();
   // Its front, with the lit window, faces back up the line toward the camera.
   placeOn(cot, cc, cotYaw, groundAt);
   root.add(cot);
@@ -295,7 +286,7 @@ export function buildCountryside(root) {
   }));
 
   // ---------- the sky: cumulus towers on the horizon ----------
-  const clouds = group('a towering billowing cumulus cloud, lit peach and gold by the setting sun, soft lilac shade');
+  const clouds = group('towering billowing white cumulus clouds');
   for (const [az, dist, size] of [[-0.6, 1700, 1.1], [-0.95, 1500, 0.8], [0.45, 1800, 1.25], [0.85, 1500, 0.85], [-1.3, 1400, 0.7], [1.25, 1400, 0.75]]) {
     const cx = Math.sin(az) * dist, cz = -680 - Math.cos(az) * dist;
     // Puffs in rings that narrow as they rise.
@@ -303,8 +294,9 @@ export function buildCountryside(root) {
       for (let k = 0; k < n; k++) {
         const a = (k / n) * Math.PI * 2 + r.range(-0.3, 0.3) + layer;
         const px = cx + Math.cos(a) * spread * size * r.range(0.6, 1), pz = cz + Math.sin(a) * spread * size * 0.45;
-        const sph = mesh(new THREE.SphereGeometry(1, 16, 12), layer === 0 ? '#e6c8b4' : '#f4dcbe', undefined,
-          { position: [px, y * size, pz], scale: [rad * size * r.range(0.85, 1.15), rad * size * (layer === 0 ? 0.6 : 0.9), rad * size] });
+        // (Their sunlit side faces away from the camera: a faint glow keeps the side it sees white, not storm grey.)
+        const sph = mesh(new THREE.SphereGeometry(1, 16, 12), '#f4f2ee', undefined,
+          { position: [px, y * size, pz], scale: [rad * size * r.range(0.85, 1.15), rad * size * (layer === 0 ? 0.6 : 0.9), rad * size], glow: ['#ffe8d0', 2.4] });
         clouds.add(sph);
       }
     }
@@ -358,63 +350,56 @@ function placeOn(obj, p, yaw, groundAt) {
   obj.rotation.y = yaw;
 }
 
-// A sunlit solid: faces split into lit, middle and shaded bands. `yaw` is
-// how the object will be turned in the world, so the bands match the sun.
-function solid(geometry, color, description, yaw = 0) {
-  const g = group(description);
-  const turned = geometry.clone().rotateY(yaw);
-  sunBands(turned).forEach((b, k) => { if (b) g.add(mesh(b.rotateY(-yaw), bandColor(color, k))); });
-  return g;
-}
-
 // A gable roof: a triangular prism, w wide, d deep, h high.
 function gable(w, d, h) {
   const shape = new THREE.Shape([new THREE.Vector2(-w / 2, 0), new THREE.Vector2(w / 2, 0), new THREE.Vector2(0, h)]);
   return new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false }).translate(0, 0, -d / 2);
 }
 
-function house(r, yaw) {
+// (The village's houses share their words: three or more of a kind take a plural.)
+function house(r) {
   const w = r.range(6, 9), d = r.range(5, 6.5), h = r.range(3.8, 5);
-  const wall = r.pick(['#efe0c0', '#e6cd96', '#f1e9da']);
-  const [roof, roofWords] = r.pick([['#b65a3a', 'a red clay tile roof'], ['#b39a5c', 'a golden thatched roof'], ['#6e7078', 'a grey slate roof']]);
+  const wall = r.pick(['#efe6d2', '#e8dcc0', '#f2ede2']);
+  const [roof, roofWords] = r.pick([['#a8553a', 'red clay tile roofs'], ['#a89060', 'thick straw thatched roofs'], ['#6e7078', 'grey slate roofs']]);
   const g = new THREE.Group();
-  g.add(solid(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), wall, 'the whitewashed stone walls of a village house', yaw));
-  g.add(solid(gable(d + 0.8, w + 0.8, h * 0.6).rotateY(Math.PI / 2).translate(0, h, 0), roof, roofWords, yaw));
+  g.add(mesh(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), wall, 'whitewashed stone village house walls'));
+  g.add(mesh(gable(d + 0.8, w + 0.8, h * 0.6).rotateY(Math.PI / 2).translate(0, h, 0), roof, roofWords));
   return g;
 }
 
-function churchWithSpire(yaw) {
+function churchWithSpire() {
   const g = new THREE.Group();
-  const stone = '#e4d6b6', slate = '#5c6170';
-  g.add(solid(new THREE.BoxGeometry(9, 8, 18).translate(0, 4, 0), stone, 'the old sandstone nave of a village church', yaw));
-  g.add(solid(gable(10, 19, 5).translate(0, 8, 0), slate, 'a dark grey slate church roof', yaw));
-  g.add(solid(new THREE.BoxGeometry(5.5, 15, 5.5).translate(0, 7.5, 11), stone, 'a square sandstone church tower', yaw));
-  g.add(solid(new THREE.ConeGeometry(3.9, 13, 4).rotateY(Math.PI / 4).translate(0, 21.5, 11), slate, 'a tall pointed slate church spire', yaw));
-  g.add(mesh(new THREE.ConeGeometry(0.25, 1.6, 6), '#d9a43a', 'a small golden weathervane', { position: [0, 28.6, 11] }));
+  const stone = '#d8cbb0', slate = '#5c6170';
+  g.add(mesh(new THREE.BoxGeometry(9, 8, 18).translate(0, 4, 0), stone, 'old pale sandstone church nave'));
+  g.add(mesh(gable(10, 19, 5).translate(0, 8, 0), slate, 'dark grey slate church roof'));
+  g.add(mesh(new THREE.BoxGeometry(5.5, 15, 5.5).translate(0, 7.5, 11), stone, 'square pale sandstone church tower'));
+  g.add(mesh(new THREE.ConeGeometry(3.9, 13, 4).rotateY(Math.PI / 4).translate(0, 21.5, 11), slate, 'tall pointed grey slate church spire'));
+  g.add(mesh(new THREE.ConeGeometry(0.25, 1.6, 6), '#b08a3a', null, { position: [0, 28.6, 11], roughness: 0.4 }));
   return g;
 }
 
-function windmill(yaw) {
-  const root = new THREE.Group();
-  root.add(solid(new THREE.CylinderGeometry(3.2, 4.8, 16, 18).translate(0, 8, 0), '#efe4cc', 'a white stone tower windmill', yaw));
-  root.add(solid(new THREE.ConeGeometry(4.0, 4.6, 18).translate(0, 18.2, 0), '#b4503a', 'a red conical windmill cap', yaw));
-  root.add(mesh(new THREE.BoxGeometry(1.2, 2.2, 0.3), gold('#5a4430'), 'a dark wooden windmill door', { position: [0, 1.1, 4.6] }));
-  const sails = new THREE.Group();
+function windmill() {
+  // (Door, hub and arms are too small to need their own words: the tower's and the sails' cover them.)
+  const root = group('white stone windmill tower');
+  root.add(mesh(new THREE.CylinderGeometry(3.2, 4.8, 16, 18).translate(0, 8, 0), '#ece6d8'));
+  root.add(mesh(new THREE.ConeGeometry(4.0, 4.6, 18).translate(0, 18.2, 0), '#a8483a', 'red conical windmill cap'));
+  root.add(mesh(new THREE.BoxGeometry(1.2, 2.2, 0.3), '#5a4430', undefined, { position: [0, 1.1, 4.6] }));
+  const sails = group('big cream canvas windmill sails on wooden lattice');
   sails.position.set(0, 15, 4.2);
-  sails.add(mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.2, 12).rotateX(Math.PI / 2), gold('#6a5038'), 'a wooden windmill hub'));
+  sails.add(mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.2, 12).rotateX(Math.PI / 2), '#6a5038'));
   const arms = [], cloths = [];
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * Math.PI * 2;
     arms.push(new THREE.BoxGeometry(0.4, 13, 0.4).translate(0, 6.8, 0.3).rotateZ(a));
     cloths.push(new THREE.BoxGeometry(2.4, 10, 0.12).translate(1.45, 7.6, 0.35).rotateZ(a));
   }
-  sails.add(mesh(mergeGeometries(arms), gold('#7a5a3a'), 'the wooden arms of windmill sails'));
-  sails.add(mesh(mergeGeometries(cloths), gold('#f0e2c2'), 'big cream canvas windmill sails stretched on a wooden lattice'));
+  sails.add(mesh(mergeGeometries(arms), '#7a5a3a'));
+  sails.add(mesh(mergeGeometries(cloths), '#eee4cc'));
   root.add(sails);
   return { root, sails };
 }
 
-function stoneBridge(yaw) {
+function stoneBridge() {
   // Side profile: a deck with three round arches, extruded across its width.
   const L = 34, H = 6.5, shape = new THREE.Shape();
   shape.moveTo(-L / 2, 0);
@@ -425,27 +410,31 @@ function stoneBridge(yaw) {
   }
   shape.lineTo(L / 2, 0); shape.lineTo(L / 2 + 3, H - 1.6); shape.lineTo(L / 2, H); shape.lineTo(-L / 2, H); shape.lineTo(-L / 2 - 3, H - 1.6); shape.lineTo(-L / 2, 0);
   const geo = new THREE.ExtrudeGeometry(shape, { depth: 5, bevelEnabled: false, curveSegments: 10 }).translate(0, 0, -2.5);
-  const g = solid(geo, '#d6c4a0', 'an old arched stone bridge of warm sandstone blocks over the river', yaw);
-  g.add(solid(new THREE.BoxGeometry(L, 0.9, 0.5).translate(0, H + 0.45, 2.3), '#cdb894', 'a low stone parapet', yaw));
-  g.add(solid(new THREE.BoxGeometry(L, 0.9, 0.5).translate(0, H + 0.45, -2.3), '#cdb894', 'a low stone parapet', yaw));
+  // (The parapets are the bridge's: its words cover them.)
+  const g = group('old arched sandstone bridge with low parapets');
+  g.add(mesh(geo, '#cdbd9c'));
+  g.add(mesh(new THREE.BoxGeometry(L, 0.9, 0.5).translate(0, H + 0.45, 2.3), '#c4b294'));
+  g.add(mesh(new THREE.BoxGeometry(L, 0.9, 0.5).translate(0, H + 0.45, -2.3), '#c4b294'));
   return g;
 }
 
-function cottage(yaw) {
+function cottage() {
   const g = new THREE.Group();
-  g.add(solid(new THREE.BoxGeometry(7.5, 4.2, 5.5).translate(0, 2.1, 0), '#efe2c4', 'the whitewashed stone walls of a little country cottage', yaw));
-  g.add(solid(gable(6.4, 8.4, 3.4).rotateY(Math.PI / 2).translate(0, 4.2, 0), '#b8955a', 'a thick golden thatched cottage roof', yaw));
-  g.add(solid(new THREE.BoxGeometry(0.9, 2.2, 0.9).translate(2.3, 6.2, -1.2), '#c4b090', 'a stone chimney', yaw));
+  g.add(mesh(new THREE.BoxGeometry(7.5, 4.2, 5.5).translate(0, 2.1, 0), '#efe6d0', 'little whitewashed stone cottage walls'));
+  g.add(mesh(gable(6.4, 8.4, 3.4).rotateY(Math.PI / 2).translate(0, 4.2, 0), '#a88c5a', 'thick straw thatched cottage roof'));
+  g.add(mesh(new THREE.BoxGeometry(0.9, 2.2, 0.9).translate(2.3, 6.2, -1.2), '#b8a88c', 'small square stone cottage chimney'));
   // The front (+z here) faces the camera at the end: a door and a lit window.
-  g.add(mesh(new THREE.BoxGeometry(1.1, 2.1, 0.2), gold('#5a3e2a'), 'a dark wooden cottage door', { position: [-1.9, 1.05, 2.8] }));
-  g.add(mesh(new THREE.BoxGeometry(1.7, 1.3, 0.15), '#ffc45a', 'a glowing warm lit cottage window, golden lamplight inside', { position: [1.3, 2.3, 2.8] }));
-  g.add(mesh(new THREE.BoxGeometry(1.95, 0.16, 0.3), gold('#5a3e2a'), 'a wooden window sill', { position: [1.3, 1.6, 2.86] }));
-  g.add(mesh(new THREE.BoxGeometry(0.12, 1.3, 0.24), gold('#5a3e2a'), 'a wooden window frame bar', { position: [1.3, 2.3, 2.86] }));
+  g.add(mesh(new THREE.BoxGeometry(1.1, 2.1, 0.2), '#5a3e2a', 'dark wooden cottage front door', { position: [-1.9, 1.05, 2.8] }));
+  // (It glows, and lights the sill and the grass in front of it.)
+  g.add(mesh(new THREE.BoxGeometry(1.7, 1.3, 0.15), '#ffd9a0', 'warm glowing lit cottage window', { position: [1.3, 2.3, 2.8], glow: ['#ffb45a', 2.5] }));
+  const frame = 'dark wooden cottage window frame';
+  g.add(mesh(new THREE.BoxGeometry(1.95, 0.16, 0.3), '#5a3e2a', frame, { position: [1.3, 1.6, 2.86] }));
+  g.add(mesh(new THREE.BoxGeometry(0.12, 1.3, 0.24), '#5a3e2a', frame, { position: [1.3, 2.3, 2.86] }));
   // A picket fence round the front garden.
   const posts = [];
   for (let i = 0; i <= 12; i++) posts.push({ position: [-6 + i, 0.5, 6] });
   for (let i = 1; i <= 4; i++) { posts.push({ position: [-6, 0.5, 6 - i] }); posts.push({ position: [6, 0.5, 6 - i] }); }
-  g.add(instanced(new THREE.BoxGeometry(0.14, 1, 0.14), gold('#e8dcc4'), 'a white wooden picket fence post', posts));
-  g.add(mesh(new THREE.BoxGeometry(12, 0.12, 0.1), gold('#e8dcc4'), 'a white wooden fence rail', { position: [0, 0.7, 6] }));
+  g.add(instanced(new THREE.BoxGeometry(0.14, 1, 0.14), '#ece6da', 'white wooden picket fence', posts));
+  g.add(mesh(new THREE.BoxGeometry(12, 0.12, 0.1), '#ece6da', 'white wooden picket fence', { position: [0, 0.7, 6] }));
   return g;
 }
