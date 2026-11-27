@@ -20,8 +20,8 @@ npx dewctl init --template golden-glide    # or name it: golden-glide, ember-wyr
 ```
 
 Each folder is a whole project. Its README says how the game works and why
-its look works on Dewdrop: the prompt clause by clause, the colours, the
-words, the shapes and the camera.
+its look works on Dewdrop: the prompt clause by clause, the light, the
+colours, the words, the shapes and the camera.
 
 A folder copied by hand rather than with `init` needs `npx dewctl init` run
 in it once: that connects it to a game of yours, and `npm run dev` then
