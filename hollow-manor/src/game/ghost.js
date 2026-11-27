@@ -7,7 +7,7 @@
 //   ghost.canLunge = true;   // a peek you walk right into, without turning your candle on it, lunges at you
 //   ghost.struck             // set once it's got you (the game takes it, and clears it)
 //   ghost.rush(x, z);        // the chase: rush after you, at (x, z) now (the game moves it each step)
-//   ghost.frame(dt, t)       // the hem flutters, the colour follows its visibility
+//   ghost.frame(dt, t)       // the hem flutters, the colour and its faint cold light follow its visibility
 //
 // Its states: lurk, peek, appear, startled (faced: it flees), swoop, lunge,
 // rush (the chase). Every point it heads for is kept inside the hall, so its
@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { clamp, damp, lerp, smoothstep, rng, wrapAngle, ease } from '../core/util.js';
 import { routePoint, insideHall, ROUTE_END } from './layout.js';
-import { GHOST_ROBE, GHOST_BONE, GHOST_FACE, GHOST_WORDS } from '../look.js';
+import { GHOST_ROBE, GHOST_BONE, GHOST_FACE, GHOST_WORDS, GHOST_CHILL } from '../look.js';
 
 // (See look.js: dark, not pale.)
 const ROBE = new THREE.Color(GHOST_ROBE);
@@ -94,18 +94,18 @@ export class Ghost {
 
     // Under the hood: shadow, and deep in it a faint gaunt face. (No eye
     // holes or open mouth: they make it a Halloween sheet or a "Scream" mask.)
-    this.body.add(mesh(new THREE.SphereGeometry(1, 14, 10), '#030406', 'deep black shadow inside a ragged hood', { position: [0, 2.0, 0.19], scale: [0.14, 0.2, 0.08] }));
-    this.body.add(tint(mesh(new THREE.SphereGeometry(1, 12, 10), FACE.clone(), 'a faint gaunt pale hollow-cheeked face half-lost in the shadow of the hood', { position: [0, 1.98, 0.235], scale: [0.075, 0.11, 0.035] }), FACE, 0.1));
+    this.body.add(mesh(new THREE.SphereGeometry(1, 14, 10), '#030406', undefined, { position: [0, 2.0, 0.19], scale: [0.14, 0.2, 0.08] }));
+    this.body.add(tint(mesh(new THREE.SphereGeometry(1, 12, 10), FACE.clone(), `face of the ${GHOST_WORDS}`, { position: [0, 1.98, 0.235], scale: [0.075, 0.11, 0.035], roughness: 0.4 }), FACE, 0.1));
 
     this.arms = [];
     for (const s of [-1, 1]) {
       const arm = new THREE.Group();
       arm.position.set(s * 0.27, 1.66, 0.05);
       arm.rotation.set(-0.7, 0, s * 0.22);
-      const sleeve = tint(mesh(new THREE.CylinderGeometry(0.045, 0.085, 0.8, 8, 1, true), ROBE.clone(), 'a long thin arm in trailing tattered black rags', { position: [0, -0.4, 0] }), ROBE, 0.25);
+      const sleeve = tint(mesh(new THREE.CylinderGeometry(0.045, 0.085, 0.8, 8, 1, true), ROBE.clone(), `arm of the ${GHOST_WORDS}`, { position: [0, -0.4, 0] }), ROBE, 0.25);
       sleeve.material.side = THREE.DoubleSide;
       arm.add(sleeve);
-      const hand = group('long pale bony skeletal fingers, clawed');
+      const hand = group(`hand of the ${GHOST_WORDS}`);
       hand.position.y = -0.82;
       for (let f = 0; f < 4; f++) {
         hand.add(tint(mesh(new THREE.CylinderGeometry(0.011, 0.005, 0.26, 5), BONE.clone(), undefined, { position: [(f - 1.5) * 0.026, -0.12, 0.01 * Math.abs(f - 1.5)], rotation: [0.25, 0, (f - 1.5) * 0.13] }), BONE, 0.15));
@@ -114,6 +114,10 @@ export class Ghost {
       this.body.add(arm);
       this.arms.push(arm);
     }
+    // A faint cold light low in front of it, catching the face in the hood from below.
+    this.chill = new THREE.PointLight(GHOST_CHILL[0], 0, 4);
+    this.chill.position.set(0, 1.1, 0.6);
+    this.body.add(this.chill);
   }
 
   peek(spot) {
@@ -340,6 +344,7 @@ export class Ghost {
     for (const [i, arm] of this.arms.entries()) arm.rotation.x = -0.35 + Math.sin(t * 1.4 + i * 1.3) * 0.1 - this.reach * 0.7;
     // (Faint, it sinks toward the black of the hall rather than glowing.)
     for (const { m, base, lo } of this.tinted) m.material.color.copy(base).multiplyScalar(lerp(lo, 1, this.vis));
+    this.chill.intensity = GHOST_CHILL[1] * this.vis;
   }
 }
 

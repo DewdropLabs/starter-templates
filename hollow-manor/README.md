@@ -25,78 +25,93 @@ recipe: https://alpha.dewdrop.world/docs/recipes#horror.
 
 ```
 src/        main.js  look.js  hud.js  hud.css
-src/game/   index.js  frights.js  ghost.js  hall.js  layout.js  light.js  props.js  shade.js
+src/game/   index.js  frights.js  ghost.js  hall.js  layout.js  props.js  shade.js
 src/core/   audio.js  input.js  look.js  loop.js  util.js
 public/sounds/
 ```
 
 ## The look, clause by clause
 
-On Dewdrop the look comes from the style prompt, the background colour and
-description, and each mesh's colour and description; lights don't show there.
-The prompt (`PROMPT` in `src/look.js`):
+The look is the
+[Horror](https://alpha.dewdrop.world/docs/recipes#horror) recipe: a candlelit
+house at night. The prompt (`PROMPT` in `src/look.js`):
 
-> style: cinematic realistic gothic horror. Pitch-black darkness beyond a
-> small pool of warm candlelight, most of the hall unlit and unseen, cold blue
-> moonlight through the windows, dust and decay, a haunted manor hallway at
-> night.
+> style: Cinematic realistic gothic horror film still with dim candlelight. A
+> decaying manor hallway at night, eye-level view.
 
-- **cinematic realistic gothic horror**: the medium, first.
-- **Pitch-black darkness beyond a small pool of warm candlelight, most of the
-  hall unlit and unseen**: the darkness has to be said. A prompt with only
-  "deep darkness, warm candlelight" lights the whole hall evenly, and the
-  pools of light don't read.
-- **cold blue moonlight through the windows**: the other light, which
-  `light.js` bakes in blue under each window (`MOON`).
-- **dust and decay**: the mottled, decayed walls.
-- **a haunted manor hallway at night**: the place, once for the whole frame.
+- **Cinematic realistic gothic horror film still**: the medium, a still from a
+  film, which keeps the hall real and dark rather than drawn.
+- **with dim candlelight**: the light, the same as the scene's own: the
+  candles are almost all there is.
+- **A decaying manor hallway**: the place, broadly; the peeling paper, the
+  sheeted chair and the dead roses come from their own words.
+- **at night, eye-level view**: the hour and the first-person camera.
 
-The background is `#070a12`, "a black night sky, a pale moon glimpsed behind
-clouds": near black, seen only through the windows. A deep blue sky lights the
-whole hall.
+When the door opens at the end, the scene sentence says where the new light
+comes from (`PROMPT_DOOR`): "A decaying manor hallway at night, warm light
+spilling from an open doorway, eye-level view."
 
-When the door opens at the end, the prompt gains a sentence (`PROMPT_DOOR`):
-"A door ajar spilling warm golden light."
+The background is `#070a12`, "black night sky with pale moon behind clouds":
+near black, seen only through the windows.
+
+## Light
+
+There's no sun. Everything you see, the candles light (`src/look.js` has
+each light's colour and strength):
+
+- **Moonlight**: a faint cold blue `DirectionalLight` (`MOON`), about a
+  hundredth of a daylight sun, from the north-east, so it falls in through the
+  windows of the first hall's east wall and the long north wall, and nowhere
+  else.
+- **Your candle**: a warm `PointLight` just above the flame in your hand
+  (`CANDLE`), flickering with it. It moves with you, so the pool of light is
+  wherever you are.
+- **The candelabras**: each candle is a glowing flame with a small warm
+  `PointLight` (`STICK`), dark until you light it. Each one you light also
+  lights a candle over the double doors.
+- **The door at the end**: the little room behind it has a lamp
+  (`ROOM`, a `PointLight`) and glowing walls; its light spills through the gap
+  and across the floor of the hall.
+- **The ghost** brings a faint cold light with it (`GHOST_CHILL`), low in
+  front, which catches its face in the hood from below and fades with it.
+
+The exposure is fixed (`EXPOSURE`): `strength` 0, so it never brightens to
+show the dark, and `localShadows` 1, so most of the house stays unseen, with a
+low `highlightContrast` and `localHighlights` so the flames don't blow out.
+Raise `ev` to see more of the hall, lower it for less.
 
 ## Colour
 
-The candle is baked into tiles about a metre across, every frame, as in
-[Pools of light](https://alpha.dewdrop.world/docs/baked-light#pools-of-light)
-(`game/light.js`), with these values:
+Every material has its everyday colour: the light makes the dark.
 
-- a night floor of `(0.008, 0.008, 0.012)`: about 1 % of daylight, a little
-  blue. Dark colours are lifted a lot, so the floor has to be this low.
-- the candle `(1.0, 0.62, 0.3)` with a small radius (`r` 1.45 m in your hand,
-  1.6 on a candelabra). A wider pool lights the hall evenly.
-- the moon `(0.32, 0.45, 0.85)` under each window.
-- daylight colours that are dark already: oak floor `#6a4a32`, green damask
-  `#5a6a4c`, red runner `#8a2a26`, ceiling `#4a4440`.
-- flames `#ffa838`, never baked: a dark scene is dark colours with bright
-  lights in view. Unlit wax keeps a floor of 0.1, so dark candles read as pale shapes.
+- oak floor `#6a4a32`, oak panelling `#5a3a28`, green damask `#66765a`,
+  red runner `#8a2a26`, plaster ceiling `#8e8679`, red velvet `#6a1c22`.
+- flames `#ffa838`, as `emissive`; flames about 5 × 11 cm (smaller ones read as
+  unlit candles), 6 × 13 cm over the doors, which you see from the far end of
+  the hall.
+- brass, gilt and pewter are metal (`metalness` 1), and catch the candle in
+  highlights; the glove is glossy leather.
 - the ghost's robe `#3a414c`, its only pale parts its fingers `#c4c8cc` and a
   face `#6a7078` deep in the hood.
 
-Even so, walls 2–4 m away stay faintly lit; `game/shade.js` closes the edges
-of the view in with a tight vignette on the page (a softer one barely
-registers).
-
 ## Words
 
-Every description is what the camera sees, in the look's own words, and it
-follows the light (`Lighting.words` in `game/light.js`):
+Every description is one plain string in the rich form, what the thing is
+with its colour, material or state, with no light in it unless the thing
+glows:
 
-- lit: "peeling green damask wallpaper, torn and stained, in warm candlelight"
-- dim: "..., in deep shadow, barely visible"
-- dark: no material at all, only "pitch-black darkness, unseen"
-- under a window: "..., in pale cold blue moonlight"
+- "old dark oak floorboards, dusty and scuffed"
+- "peeling green damask wallpaper, torn and stained"
+- "tall tarnished black wrought-iron candelabras"
+- "small bright orange candle flames"
+- "lit ivory wax candles", "unlit ivory wax candles", and "snuffed ivory wax
+  candles with smoking wicks" when the ghost passes them
 
-The rule: colours alone don't make the dark dark. A wall described as damask
-comes out as damask, lit or not, so what you can't see has no material.
-The words change with a margin, so they don't flicker at a pool's edge.
-
-The candle's words carry its light too: "a hand ... holding a lit candle"
-lights the frame even before a flame shows, and a snuffed candle says "its
-wick smoking, just blown out".
+Things of a kind share a plural ("old dark oak doors with carved panels",
+"tattered heavy dark red velvet curtains, dusty"); specks such as door knobs
+and the curtain rods get none. The ghost is one thing, "tall gaunt hooded
+wraith in tattered black rags, pale bony fingers", and up close its face,
+arms and hands are its parts: "face of the tall gaunt hooded wraith ...".
 
 ## Shapes and the camera
 
@@ -107,8 +122,8 @@ wick smoking, just blown out".
   charred block, knuckle spheres as eyes, a pale cuff as bare skin, round
   pleats as red pillars, a dark window pane as frosted glass, a pale oval
   portrait face as a mirror.
-- **Lighting can't fade a scene out.** Snuffing candles barely darkens the
-  frame; the black on the page at the cut does it.
+- **Windows are openings** with mullions and curtains, no glass, so the
+  moonlight comes through them.
 - Near the lens things grow into blobs: the held candle sits 0.65 m off and
   boxy, candelabras stay 0.9 m off, the ghost's lunge stops about 1 m off
   (at its final distance on its first frame), and the door that opens at the
@@ -117,11 +132,13 @@ wick smoking, just blown out".
 ## Make it yours
 
 1. **The prompt and the sky** (`PROMPT`, `SKY`, `SKY_WORDS` in `src/look.js`):
-   say the medium first, then the darkness, then the place.
-2. **The palette** (the colours in `src/look.js`, and `NIGHT` and the candle's
-   `r` in `src/game/light.js`): keep daylight colours dark and the night floor
-   low, or the pools of light go.
-3. **The ghost** (`GHOST_ROBE`, `GHOST_WORDS` in `src/look.js`, the shape in
+   the medium with its light, then the place, the hour and the camera.
+2. **The light** (`MOON`, `CANDLE`, `STICK`, `ROOM` and `EXPOSURE` in
+   `src/look.js`): a brighter candle or a higher `ev` shows more of the hall;
+   keep the moon faint, or the night goes.
+3. **The palette and the words** (the rest of `src/look.js`): everyday
+   colours, with words that agree with them.
+4. **The ghost** (`GHOST_ROBE`, `GHOST_WORDS` in `src/look.js`, the shape in
    `src/game/ghost.js`).
 
 Run it on Dewdrop with `npm run dev`, which uploads it and prints a link to play it:
