@@ -34,59 +34,72 @@ public/sounds/
 
 ## The look, clause by clause
 
-On Dewdrop the look comes from the style prompt, the background colour and
-description, and each mesh's colour and description; lights and textures
-don't show there. The prompt (`PROMPT` in `src/look.js`):
+On Dewdrop the look comes from the lights, each mesh's colour and shape, the
+words on each thing, and the style prompt (`PROMPT` in `src/look.js`):
 
-> `style: knitted wool and felt craft diorama. Everything made of chunky knitted yarn and soft felt, visible stitches, cozy handmade, soft light, saturated colors, a tiny farm.`
+> `style: Knitted yarn diorama with soft studio lighting. A cozy farm in the morning, viewed from slightly above and behind.`
 
-- **knitted wool and felt craft diorama**: the medium, and the scale of a
-  model set on a table, so the whole world is one handmade object.
-- **Everything made of chunky knitted yarn and soft felt**: the two
-  materials, for every part: knitting for the big surfaces, felt for the
-  flat ones (fences, signs, roofs).
-- **visible stitches**: the surface texture. With the ribbed shapes it reads
-  as knitting rather than fuzzy cloth.
-- **cozy handmade, soft light**: the mood, and no hard shadows.
-- **saturated colors**: wool softens colour; this pulls it back.
-- **a tiny farm**: the subject, which keeps the barn, beds and animals reading
-  together.
+- **Knitted yarn diorama**: the medium, and the scale of a miniature set on
+  a table, so the whole world is one handmade object.
+- **with soft studio lighting**: the light, which the scene's own lights
+  (below) agree with: one soft lamp and a bright fill.
+- **A cozy farm**: the scene as a whole. The barn, the beds and the animals
+  are left to their own descriptions.
+- **in the morning**: the hour, matching the warm white key light.
+- **viewed from slightly above and behind**: where the follow camera sits,
+  close behind the farmer and a little above it.
 
-The background is `#a8d8f0`, described as *a soft blue felt sky backdrop
-with fluffy white felt clouds*: a stage backdrop, in the same materials.
-The clouds are meshes: stacked white spheres 420–520 m out.
+The background is `#9ad2f2`, described as *soft blue felt sky backdrop with
+fluffy white felt clouds*: a stage backdrop, in the same materials. The
+clouds are meshes: stacked white spheres 420–520 m out.
+
+## Light
+
+`LIGHT` and `addLights()` in `src/look.js`, the
+[Knitted wool](https://alpha.dewdrop.world/docs/recipes#knitted-wool) recipe:
+
+- **A soft key light**: a warm white `DirectionalLight` (`#fff3e2`,
+  intensity 3) from above, in front and to the left as the camera starts,
+  so faces toward the camera are lit and shadows fall back and to the right.
+  Its `userData.angle` of 0.05 gives the shadows soft edges, like a studio
+  lamp's.
+- **A bright sky light**: a `HemisphereLight` about a third of it, so the
+  shaded sides stay soft and colourful, never black.
 
 ## Colour
 
-The palette is `C` in `src/look.js`: grass `#86c23c`, hedge `#4f9a32`, soil
-`#6a3c22` (`#4a2814` just watered), wild turf `#74b236`, barn `#c8342a` with
-trim `#f6f2ea` and roof `#6a4a3a`, hay `#e8c25a`, carrot orange `#f08a20`,
-sunflower `#f6c02a`, cabbage `#8cc63f`/`#5aa83a`, sky `#a8d8f0`.
+Every material is matte (roughness 1: wool and felt have no shine), in its
+everyday colour; the light does the shading. The palette is `C` in
+`src/look.js`: grass `#86c23c`, hedge `#3f9a2a`, soil `#7a4a2a` (`#4e2a12`
+just watered), wild turf `#6cb82c`, barn `#d0302a` with trim `#f6f2ea` and
+roof `#6e4430`, hay `#f0c448`, carrot orange `#f08a20`, sunflower `#f6c02a`,
+cabbage `#86cc30`/`#4fac2e`, flowers `#e8403a`, `#f6c02a` and `#c45ad8`.
 
-- Saturated, clay-like colours, a little brighter than looks right as plain
-  colours: knitted wool keeps colours soft on Dewdrop.
-- The giant pumpkin is a deeper `#f05a10` with "vivid saturated orange" in
-  its words: a big soft orange washes out toward beige.
+- Saturated colours, a little more than looks right as plain colours:
+  knitted wool keeps colours soft on Dewdrop.
+- The giant pumpkin is a step deeper, `#f07a14`, with "vivid orange" in its
+  words: a big soft orange washes out toward beige.
 - Colour carries the state: a bed darkens as it's watered, and the bed under
   the mouse lightens.
-- Fog doesn't show on Dewdrop, so the far hills and trees are faded toward
-  the sky colour once, when the farm is built (`fade` in `src/core/look.js`).
 
 ## Words
 
-Nearly every description names the material and what the thing is, as the
-camera sees it:
+Every description names the craft ("knitted wool" or "felt"), the colour and
+what the thing is, in a few words, with no "a" or "the" in front:
 
-- *a chunky green knitted wool grass carpet with visible stitches*
-- *a red chunky knitted wool barn wall with ribbed stitches*
-- *a big round crochet cabbage heart with chunky stitches*
-- *a fluffy white bobble-stitch crochet sheep wool*
-- *the back of a round amigurumi doll head*, *a wide yellow straw sun hat, seen from behind*
+- *chunky green knitted wool grass carpet with visible stitches*
+- *red chunky knitted wool barn wall with ribbed stitches*
+- *plump dark brown knitted wool soil bed with chunky ribbed rows*
+- *giant round vivid orange knitted wool pumpkin with deep ribs, fast asleep*
+- *plump russet-brown knitted wool hen with red felt comb and yellow beak*
 
-The rule: one craft word in every description ("knitted wool", "felt",
-"crochet", "yarn", "bobble-stitch", "amigurumi"), the colour, the thing, and
-the side the camera sees (the farmer is mostly seen from behind). Words can
-change with the state: the pumpkin is *fast asleep* until it wakes.
+One description covers a whole thing (`group()` in `src/core/look.js`): the
+hen, a sheep, a tool, the barn's trim. Three or more small things of a kind
+share a plural (*little round red, yellow and violet felt flowers*). The
+farmer is close to the camera, so its parts are described as parts of it:
+*hat of the little knitted wool farmer doll in red shirt, blue dungarees and
+yellow sun hat*. Words can change with the state: the pumpkin is *fast
+asleep* until it wakes.
 
 ## Shapes
 
@@ -128,10 +141,15 @@ change with the state: the pumpkin is *fast asleep* until it wakes.
 
 ## Make it yours
 
-1. **The prompt and the sky** (`PROMPT`, `SKY_WORDS`, `C.sky` in `src/look.js`):
-   change the medium (felt to clay, wool to paper craft) and keep the rest.
-2. **The palette** (`C` in `src/look.js`): colour carries more than anything else.
-3. **The material words**: search `src/game/` for "knitted wool" and "felt"
+1. **The light** (`LIGHT` in `src/look.js`): move the key light lower and
+   warmer for an evening, or turn it down and the sky light up for an
+   overcast day. Change the light before the words: the words can't overrule it.
+2. **The palette** (`C` in `src/look.js`): colour carries more than anything
+   but the light.
+3. **The prompt and the sky** (`PROMPT`, `SKY_WORDS`, `C.sky` in
+   `src/look.js`): change the medium (wool to clay, felt to paper craft)
+   and keep the rest.
+4. **The material words**: search `src/game/` for "knitted wool" and "felt"
    and say your medium instead, keeping what each thing is.
 
 Run it on Dewdrop with `npm run dev`, which uploads it and prints a link to play it

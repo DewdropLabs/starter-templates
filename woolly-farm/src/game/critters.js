@@ -51,41 +51,41 @@ const HEN_R = 0.3;     // m: her footprint, kept out of the beds and the patch
 export class Hen {
   constructor(start) {
     this.r = rng(12);
-    this.group = group('a plump russet-brown crochet hen');
+    this.group = group('plump russet-brown knitted wool hen with red felt comb and yellow beak');
     this.group.position.copy(start);
     this.group.scale.setScalar(HEN_SCALE);
     const body = this.body = new THREE.Group();
     this.group.add(body);
     const RUSSET = '#c8642e', DARK = '#8a3e1a';
-    part(lumpy(ball(0.17, 0.15, 0.21), 0.01, 7, 2), RUSSET, 'a plump round russet-brown crochet hen body', body, { position: [0, 0.24, 0] });
+    part(lumpy(ball(0.17, 0.15, 0.21), 0.01, 7, 2), RUSSET, undefined, body, { position: [0, 0.24, 0] });
     const tail = [];
     for (let i = -1; i <= 1; i++) tail.push(ball(0.04, 0.11, 0.05).rotateX(-0.5).rotateZ(i * 0.45).translate(i * 0.04, 0.38, -0.17));
-    part(merge(tail), DARK, 'a perky dark brown crochet hen tail', body);
-    part(lumpy(ball(0.075, 0.09, 0.06), 0.008, 5, 4), '#fbf6ea', 'a fluffy white crochet hen tail tuft', body, { position: [0, 0.44, -0.2], rotation: [-0.5, 0, 0] });
+    part(merge(tail), DARK, undefined, body);
+    part(lumpy(ball(0.075, 0.09, 0.06), 0.008, 5, 4), '#fbf6ea', undefined, body, { position: [0, 0.44, -0.2], rotation: [-0.5, 0, 0] });
     this.wings = [];
     for (const s of [1, -1]) {
       const pivot = new THREE.Group();
       pivot.position.set(s * 0.15, 0.3, 0.0);
       body.add(pivot);
-      part(ball(0.035, 0.09, 0.14).translate(0, -0.06, -0.02), DARK, 'a brown crochet hen wing', pivot);
+      part(ball(0.035, 0.09, 0.14).translate(0, -0.06, -0.02), DARK, undefined, pivot);
       this.wings.push({ pivot, s });
     }
     const head = this.head = new THREE.Group();
     head.position.set(0, 0.42, 0.15);
     body.add(head);
-    part(ball(0.095, 0.1, 0.095), RUSSET, 'a round russet-brown crochet hen head', head);
+    part(ball(0.095, 0.1, 0.095), RUSSET, undefined, head);
     // A big bright comb, a wattle and a fat yellow beak: unmistakably a hen.
-    for (let i = -1; i <= 1; i++) part(ball(0.042, 0.06, 0.04), '#e0302a', 'a big bright red felt hen comb', head, { position: [0, 0.115 + (i ? 0 : 0.03), i * 0.05 - 0.005] });
-    part(new THREE.ConeGeometry(0.05, 0.11, 10).rotateX(Math.PI / 2), '#f6c21c', 'a fat yellow felt hen beak', head, { position: [0, -0.005, 0.135] });
-    for (const s of [1, -1]) part(ball(0.026, 0.05, 0.024), '#e0302a', 'a dangling red felt hen wattle', head, { position: [s * 0.022, -0.075, 0.1] });
-    for (const s of [1, -1]) part(ball(0.022, 0.026, 0.015), C.ink, 'a shiny black bead eye', head, { position: [s * 0.07, 0.02, 0.06], rotation: [0, s * 0.7, 0] });
+    for (let i = -1; i <= 1; i++) part(ball(0.042, 0.06, 0.04), '#e0302a', undefined, head, { position: [0, 0.115 + (i ? 0 : 0.03), i * 0.05 - 0.005] });
+    part(new THREE.ConeGeometry(0.05, 0.11, 10).rotateX(Math.PI / 2), '#f6c21c', undefined, head, { position: [0, -0.005, 0.135] });
+    for (const s of [1, -1]) part(ball(0.026, 0.05, 0.024), '#e0302a', undefined, head, { position: [s * 0.022, -0.075, 0.1] });
+    for (const s of [1, -1]) part(ball(0.022, 0.026, 0.015), C.ink, undefined, head, { position: [s * 0.07, 0.02, 0.06], rotation: [0, s * 0.7, 0] });
     this.legs = [];
     for (const s of [1, -1]) {
       const leg = new THREE.Group();
       leg.position.set(s * 0.06, 0.12, 0);
       this.group.add(leg);
-      part(cyl(0.015, 0.015, 0.12, 6), '#f0a020', 'a thin orange felt hen leg', leg, { position: [0, -0.06, 0] });
-      part(ball(0.04, 0.012, 0.05), '#f0a020', 'an orange felt hen foot', leg, { position: [0, -0.115, 0.02] });
+      part(cyl(0.015, 0.015, 0.12, 6), '#f0a020', undefined, leg, { position: [0, -0.06, 0] });
+      part(ball(0.04, 0.012, 0.05), '#f0a020', undefined, leg, { position: [0, -0.115, 0.02] });
       this.legs.push(leg);
     }
     // (Where a speech bubble sits: over her comb, still while she bobs.)
@@ -283,7 +283,7 @@ const _t = new THREE.Vector3(), _u = new THREE.Vector3(), _w = new THREE.Vector3
 export class Sheep {
   constructor(at, yaw, seed) {
     this.r = rng(seed);
-    this.group = group('a fluffy white bobble-stitch crochet sheep');
+    this.group = group('fluffy white bobble-stitch knitted wool sheep with dark grey felt face');
     this.group.position.copy(at);
     this.group.rotation.y = yaw;
     this.group.scale.setScalar(1.25);
@@ -295,17 +295,17 @@ export class Sheep {
       const a = i * 2.4, y = 0.45 + Math.sin(i * 1.7) * 0.08, r = 0.15 + (i % 3) * 0.02;
       bob.push(new THREE.SphereGeometry(r, 12, 9).translate(Math.sin(a) * 0.17, y + (i % 2) * 0.06, Math.cos(a) * 0.24 - 0.02));
     }
-    part(lumpy(merge(bob), 0.008, 9, seed), '#f6f2ea', 'fluffy white bobble-stitch crochet sheep wool', body);
+    part(lumpy(merge(bob), 0.008, 9, seed), '#f6f2ea', undefined, body);
     const head = this.head = new THREE.Group();
     head.position.set(0, 0.55, 0.3);
     body.add(head);
-    part(ball(0.1, 0.12, 0.14), '#3a3430', 'a dark grey felt sheep face', head, { position: [0, -0.02, 0.06] });
-    part(lumpy(ball(0.1, 0.07, 0.09), 0.01, 9, 3), '#f6f2ea', 'a white bobble-stitch tuft of wool on a sheep head', head, { position: [0, 0.09, 0.01] });
+    part(ball(0.1, 0.12, 0.14), '#3a3430', undefined, head, { position: [0, -0.02, 0.06] });
+    part(lumpy(ball(0.1, 0.07, 0.09), 0.01, 9, 3), '#f6f2ea', undefined, head, { position: [0, 0.09, 0.01] });
     for (const s of [1, -1]) {
-      part(ball(0.05, 0.022, 0.09), '#3a3430', 'a floppy dark grey felt sheep ear', head, { position: [s * 0.12, 0.02, 0.02], rotation: [0, s * 0.6, s * -0.4] });
-      part(ball(0.018, 0.022, 0.012), '#f6f2ea', 'a white bead eye', head, { position: [s * 0.055, 0.03, 0.17] });
+      part(ball(0.05, 0.022, 0.09), '#3a3430', undefined, head, { position: [s * 0.12, 0.02, 0.02], rotation: [0, s * 0.6, s * -0.4] });
+      part(ball(0.018, 0.022, 0.012), '#f6f2ea', undefined, head, { position: [s * 0.055, 0.03, 0.17] });
     }
-    for (const [x, z] of [[0.09, 0.15], [-0.09, 0.15], [0.09, -0.15], [-0.09, -0.15]]) part(cyl(0.035, 0.03, 0.32, 8), '#3a3430', 'a dark grey felt sheep leg', body, { position: [x, 0.16, z] });
+    for (const [x, z] of [[0.09, 0.15], [-0.09, 0.15], [0.09, -0.15], [-0.09, -0.15]]) part(cyl(0.035, 0.03, 0.32, 8), '#3a3430', undefined, body, { position: [x, 0.16, z] });
     this.jumpT = 9;
     this.phase = this.r.range(0, 6);
   }

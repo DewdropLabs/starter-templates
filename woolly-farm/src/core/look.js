@@ -1,15 +1,16 @@
 // Meshes with a colour and a description (userData.description).
 //
-//   const rock = mesh(new THREE.SphereGeometry(1), '#8a8a8a', 'a grey knitted wool rock', { position: [0, 1, 0] });
-//   const tree = group('a round felt lollipop tree', trunk, top);
-//   fade(meshes, center, 40, '#a8d8f0');      // distance haze, once
+//   const rock = mesh(new THREE.SphereGeometry(1), '#8a8a8a', 'grey knitted wool rock', { position: [0, 1, 0] });
+//   const tree = group('round felt lollipop tree', trunk, top);
+//
+// Every material is matte (roughness 1): wool and felt have no shine.
 import * as THREE from 'three';
 
-const material = (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0 });
+const material = (color) => new THREE.MeshStandardMaterial({ color, roughness: 1, metalness: 0 });
 
 // A mesh with its own material (so its colour can change alone).
 // `o`: { position: [x,y,z], rotation: [x,y,z], scale: n | [x,y,z] }.
-// userData.base keeps its own colour, for fades.
+// userData.base keeps its own colour (a bed under the pointer lightens from it).
 export function mesh(geometry, color, description, { position, rotation, scale } = {}) {
   const m = new THREE.Mesh(geometry, material(color));
   m.userData.base = m.material.color.clone();
@@ -44,21 +45,4 @@ export function instanced(geometry, color, description, items) {
   m.userData.base = m.material.color.clone();
   if (description !== undefined) m.userData.description = description;
   return m;
-}
-
-export function meshesOf(root) {
-  const out = [];
-  root.traverse((m) => { if (m.isMesh) out.push(m); });
-  return out;
-}
-
-// Blend each mesh's colour toward `to` (the background colour) by its
-// distance from `from`: nothing near, all of it far past `far`.
-export function fade(meshes, from, far, to, { strength = 1 } = {}) {
-  const target = new THREE.Color(to), p = new THREE.Vector3();
-  for (const m of meshes) {
-    m.material.color.copy(m.userData.base);
-    const k = (1 - Math.exp(-((m.getWorldPosition(p).distanceTo(from) / far) ** 1.6))) * strength;
-    m.material.color.lerp(target, k);
-  }
 }

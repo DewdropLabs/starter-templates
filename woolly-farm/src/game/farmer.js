@@ -22,6 +22,9 @@ import { clamp, damp, smoothstep } from '../core/util.js';
 import { C, part, ball, cyl, rbox, lumpy, ribbed, stepped } from '../look.js';
 
 // When, in s from the start of an action, each of its moments lands.
+// The farmer as a whole: its colours in words, and the craft.
+const WHO = 'little knitted wool farmer doll in red shirt, blue dungarees and yellow sun hat';
+
 export const BEATS = {
   till: { dur: 0.8, hits: [0.27, 0.55] },
   plant: { dur: 0.68, hits: [0.18, 0.34, 0.5] },
@@ -41,39 +44,31 @@ export class Farmer {
     const c = this.char = new Character({
       scale: 1.15,
       proportions: { headR: 0.29 },
-      who: 'a little amigurumi farmer doll',
-      colors: { skin: '#f6c8a0', hair: '#d0682a', top: '#d8402e', bottom: '#3a6ab0', shoes: '#7a4a2a', hat: '#e8c25a', hands: '#f6c8a0' },
-      words: {
-        head: 'the back of a round amigurumi doll head',
-        hair: 'ginger yarn doll hair',
-        top: 'the back of a red checked knitted wool shirt',
-        bottom: 'blue knitted wool dungarees',
-        shoes: 'a little brown felt boot',
-        hands: 'a round crochet doll hand',
-        hat: 'a wide yellow straw sun hat, seen from behind',
-        face: 'a cute amigurumi doll face',
-      },
+      who: WHO,
+      colors: { skin: '#f6c8a0', hair: '#d8601e', top: '#e0382a', bottom: '#2f62b8', shoes: '#7a4a2a', hat: '#f0c440', hands: '#f6c8a0' },
+      // (Its shirt is the doll itself; the rest are parts of it, as the follow camera sees them.)
+      words: { top: WHO, bottom: `pants of the ${WHO}`, hat: `hat of the ${WHO}` },
     });
     this.root = c.root;
     const B = c.B, R = B.headR, rig = c.rig;
     // A narrower brim than Character's hat, a red band, rosy cheeks.
     for (const m of rig.hat.children) if (m.geometry?.parameters?.radiusTop > R * 1.5) m.scale.set(0.82, 1, 0.82);
-    part(cyl(R * 0.9, R * 0.92, R * 0.18, 20), '#d8302a', 'a red felt hat band', rig.hat, { position: [0, R * 0.72, 0] });
-    for (const s of [1, -1]) part(ball(R * 0.17, R * 0.12, R * 0.06), '#f28a8a', 'a round pink felt cheek', rig.head, { position: [s * R * 0.55, -R * 0.25, R * 0.8], rotation: [0, s * 0.55, 0] });
-    part(rbox(B.torsoR * 1.2, B.torsoLen * 0.55, 0.06, 0.03), '#3a6ab0', 'the blue knitted bib of a pair of dungarees', rig.spine, { position: [0, B.torsoLen * 0.38, B.torsoR * 0.86] });
-    for (const s of [1, -1]) part(rbox(0.05, B.torsoLen * 0.9, B.torsoR * 2.05, 0.02), '#3a6ab0', 'a blue dungaree strap', rig.spine, { position: [s * B.torsoR * 0.45, B.torsoLen * 0.55, 0], rotation: [0, 0, 0] });
+    part(cyl(R * 0.9, R * 0.92, R * 0.18, 20), '#d8302a', `hat of the ${WHO}`, rig.hat, { position: [0, R * 0.72, 0] });
+    for (const s of [1, -1]) part(ball(R * 0.17, R * 0.12, R * 0.06), '#f28a8a', `face of the ${WHO}`, rig.head, { position: [s * R * 0.55, -R * 0.25, R * 0.8], rotation: [0, s * 0.55, 0] });
+    part(rbox(B.torsoR * 1.2, B.torsoLen * 0.55, 0.06, 0.03), '#2f62b8', `pants of the ${WHO}`, rig.spine, { position: [0, B.torsoLen * 0.38, B.torsoR * 0.86] });
+    for (const s of [1, -1]) part(rbox(0.05, B.torsoLen * 0.9, B.torsoR * 2.05, 0.02), '#2f62b8', `pants of the ${WHO}`, rig.spine, { position: [s * B.torsoR * 0.45, B.torsoLen * 0.55, 0], rotation: [0, 0, 0] });
 
     const basket = this.basket = new THREE.Group();
-    basket.userData.description = 'a woven wicker basket worn on the back';
+    basket.userData.description = 'tan basket-weave knitted wool basket worn on the back';
     basket.position.set(0, B.torsoLen * 0.42, -B.torsoR - 0.17);
     basket.rotation.x = -0.12;
     rig.spine.add(basket);
     const tub = new THREE.CylinderGeometry(0.21, 0.17, 0.34, 18, 4, true);
     ribbed(tub, 'y', 14, 0.008);
-    const weave = part(tub, C.wicker, 'a woven wicker basket worn on the back, chunky basket-weave stitches', basket);
+    const weave = part(tub, C.wicker, undefined, basket);
     weave.material.side = THREE.DoubleSide;
-    part(cyl(0.17, 0.17, 0.03, 18), '#a8753a', 'the bottom of a wicker basket', basket, { position: [0, -0.16, 0] });
-    part(new THREE.TorusGeometry(0.21, 0.035, 8, 24).rotateX(Math.PI / 2), '#a8753a', 'the thick plaited rim of a wicker basket', basket, { position: [0, 0.17, 0] });
+    part(cyl(0.17, 0.17, 0.03, 18), '#a8703a', undefined, basket, { position: [0, -0.16, 0] });
+    part(new THREE.TorusGeometry(0.21, 0.035, 8, 24).rotateX(Math.PI / 2), '#a8703a', undefined, basket, { position: [0, 0.17, 0] });
     this.slots = [];   // what's in each slot
     this.reserved = 0; // crops promised a slot so far
     this.retired = null; // (where crops bumped out of a full basket go: set by index.js)
@@ -82,37 +77,38 @@ export class Farmer {
     this.tools = {};
     // A hoe: the handle runs on from the forearm, the blade at its far end, pointing down at the strike.
     const hoe = this.tools.hoe = new THREE.Group();
-    hoe.userData.description = 'a little wooden garden hoe with a felt blade';
+    hoe.userData.description = 'little wooden garden hoe with a grey felt blade';
     rig.handR.add(hoe);
-    part(cyl(0.022, 0.022, 1.0, 8), C.wood, 'a wooden hoe handle', hoe, { position: [0.02, -0.32, 0] });
-    part(rbox(0.22, 0.05, 0.14, 0.02), '#8a9aa8', 'a grey felt hoe blade', hoe, { position: [0.02, -0.8, -0.06] });
+    part(cyl(0.022, 0.022, 1.0, 8), C.wood, undefined, hoe, { position: [0.02, -0.32, 0] });
+    part(rbox(0.22, 0.05, 0.14, 0.02), '#8a9aa8', undefined, hoe, { position: [0.02, -0.8, -0.06] });
     const can = this.tools.can = new THREE.Group();
-    can.userData.description = 'a little green knitted wool watering can';
+    can.userData.description = 'little green knitted wool watering can with a yellow spout';
     rig.handR.add(can);
     const tank = new THREE.Group();
     tank.position.set(0, -0.2, 0.02);
     can.add(tank);
     part(cyl(0.13, 0.14, 0.24, 18), '#3fa86a', undefined, tank);
     part(ball(0.13, 0.05, 0.13), '#3fa86a', undefined, tank, { position: [0, 0.12, 0] });
-    part(new THREE.TorusGeometry(0.1, 0.025, 8, 18, Math.PI).rotateY(Math.PI / 2), '#2f8a52', 'a green felt watering can handle', tank, { position: [0, 0.12, 0] });
+    part(new THREE.TorusGeometry(0.1, 0.025, 8, 18, Math.PI).rotateY(Math.PI / 2), '#2f8a52', undefined, tank, { position: [0, 0.12, 0] });
     const spout = new THREE.Group();
     spout.position.set(0, -0.04, 0.12);
     spout.rotation.x = 0.85;
     tank.add(spout);
     part(cyl(0.025, 0.04, 0.32, 8), '#3fa86a', undefined, spout, { position: [0, 0.16, 0] });
-    part(new THREE.ConeGeometry(0.07, 0.08, 12, 1, true).rotateX(Math.PI), '#e8c25a', 'a yellow felt watering can rose', spout, { position: [0, 0.34, 0] });
+    part(new THREE.ConeGeometry(0.07, 0.08, 12, 1, true).rotateX(Math.PI), '#f0c440', undefined, spout, { position: [0, 0.34, 0] });
     this.tip = new THREE.Object3D();
     this.tip.position.set(0, 0.38, 0);
     spout.add(this.tip);
     const sickle = this.tools.sickle = new THREE.Group();
-    sickle.userData.description = 'a little sickle with a wooden handle and a curved grey felt blade';
+    sickle.userData.description = 'little sickle with a wooden handle and a curved grey felt blade';
     rig.handR.add(sickle);
-    part(cyl(0.025, 0.025, 0.2, 8), C.wood, 'a wooden sickle handle', sickle, { position: [0, -0.06, 0] });
-    part(new THREE.TorusGeometry(0.12, 0.022, 6, 16, Math.PI * 1.1).rotateY(Math.PI / 2), '#9aa8b4', 'a curved grey felt sickle blade', sickle, { position: [0, -0.2, 0.1] });
+    part(cyl(0.025, 0.025, 0.2, 8), C.wood, undefined, sickle, { position: [0, -0.06, 0] });
+    part(new THREE.TorusGeometry(0.12, 0.022, 6, 16, Math.PI * 1.1).rotateY(Math.PI / 2), '#9aa8b4', undefined, sickle, { position: [0, -0.2, 0.1] });
     const pouch = this.tools.pouch = new THREE.Group();
+    pouch.userData.description = 'little cream felt seed pouch tied with string';
     rig.handL.add(pouch);
-    part(lumpy(ball(0.09, 0.11, 0.08), 0.01, 6, 3), '#e8d8b0', 'a little cream felt seed pouch tied with string', pouch, { position: [0, -0.1, 0.04] });
-    part(cyl(0.035, 0.05, 0.05, 10), '#c8a070', 'a string tie', pouch, { position: [0, -0.01, 0.04] });
+    part(lumpy(ball(0.09, 0.11, 0.08), 0.01, 6, 3), '#e8d8b0', undefined, pouch, { position: [0, -0.1, 0.04] });
+    part(cyl(0.035, 0.05, 0.05, 10), '#c8a070', undefined, pouch, { position: [0, -0.01, 0.04] });
     this.toolK = {};
     for (const [name, g] of Object.entries(this.tools)) { this.toolK[name] = 0; g.visible = false; }
 
