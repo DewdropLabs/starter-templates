@@ -19,7 +19,7 @@ export class Clods {
     this.rand = rng(77);
     for (let i = 0; i < 18; i++) {
       const r = 0.1 + (i % 3) * 0.03;
-      const m = part(lumpy(ball(r, r * 0.8, r * 0.9), 0.015, 9, i), C.soil, 'a clump of brown knitted wool soil', parent);
+      const m = part(lumpy(ball(r, r * 0.8, r * 0.9), 0.015, 9, i), C.soil, 'clumps of brown knitted wool soil', parent);
       m.visible = false;
       this.items.push({ m, vel: new THREE.Vector3(), life: 0 });
     }
@@ -85,7 +85,7 @@ export class Droplets {
   constructor(parent) {
     this.items = [];
     for (let i = 0; i < 9; i++) {
-      const m = part(ball(0.07, 0.095, 0.07), '#3fa0e8', 'a fat glossy blue felt water droplet', parent);
+      const m = part(ball(0.07, 0.095, 0.07), '#2f9ee8', 'fat blue felt water droplets', parent);
       m.visible = false;
       this.items.push({ m, t: -1, delay: 0, from: new THREE.Vector3(), to: new THREE.Vector3() });
     }

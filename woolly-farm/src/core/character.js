@@ -2,9 +2,9 @@
 // procedural animation.
 //
 //   const hero = new Character({
-//     who: 'a little amigurumi farmer doll', // fills in the default descriptions
+//     who: 'little knitted wool farmer doll in red shirt', // fills in the default descriptions
 //     colors: { top: '#d23a2a', bottom: '#2f4f8f', hair: '#5a3a22' },
-//     words: { top: 'a red knitted jumper' },
+//     words: { top: 'red knitted wool jumper' },
 //   });
 //   root.add(hero.root);
 //   hero.drive(ctl, dt);                     // each frame: place it at a Controller and animate from its motion
@@ -15,9 +15,10 @@
 // shoulderL/R › elbowL/R › handL/R, hips › legL/R › kneeL/R › ankleL/R.
 // Left is +X.
 //
-// Every part has a colour and a description, written as seen from behind
-// ("the back of ... head") since a follow camera mostly sees that. The face
-// has eyes and a nose, so it reads as a face when it turns round. It wears
+// Every part has a colour and a description: the whole character (`who`) on
+// its body, and each part as "<part> of the <who>" (head, face, eye, nose,
+// hair, shirt, pants, shoe, hand, hat). The face has eyes and a nose, so it
+// reads as a face when it turns round. It wears
 // short hair and a brimmed hat. Options: scale, proportions (to change the
 // build), colors { skin, hair, top, bottom, shoes, hands, eyes, nose, hat },
 // words { body, head, face, eyes, nose, hair, top, bottom, shoes, hands, hat }.
@@ -69,16 +70,16 @@ export class Character {
     c.nose ??= c.skin;
     const w = {
       body: who,
-      head: `the back of ${who}'s head`,
-      face: `${who}'s face`,
-      eyes: 'a small round dark eye',
-      nose: 'a small round nose',
-      hair: `the back of ${who}'s head, short hair`,
-      top: `the back of ${who}'s shirt`,
-      bottom: `${who}'s trousers`,
-      shoes: `${who}'s boot`,
-      hands: `${who}'s hand`,
-      hat: `${who}'s hat, seen from behind`,
+      head: `head of the ${who}`,
+      face: `face of the ${who}`,
+      eyes: `eye of the ${who}`,
+      nose: `nose of the ${who}`,
+      hair: `hair of the ${who}`,
+      top: `shirt of the ${who}`,
+      bottom: `pants of the ${who}`,
+      shoes: `shoe of the ${who}`,
+      hands: `hand of the ${who}`,
+      hat: `hat of the ${who}`,
       ...words,
     };
 

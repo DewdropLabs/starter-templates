@@ -8,13 +8,14 @@ import {
   EYE, CANDELABRAS, LIGHT_REACH, PORTRAITS, DOORS, CLOCK, TABLE, SHEETED_CHAIR,
   PEEKS, AT_DOORS_X, SLAM_X, CORNERS, inRooms, walkable, routeProgress, routePoint,
 } from './layout.js';
-import { Lighting, CANDLE, GHOSTLY } from './light.js';
 import { buildHall, onWall, wallFacing, LINTEL_FLAME } from './hall.js';
-import { candelabra, portrait, grandfatherClock, consoleTable, sheetedChair, heldCandle, glow } from './props.js';
+import { candelabra, portrait, grandfatherClock, consoleTable, sheetedChair, heldCandle, FLAME_SIZE } from './props.js';
 import { Ghost } from './ghost.js';
 import { Frights } from './frights.js';
 import { Shade } from './shade.js';
-import { PROMPT, PROMPT_DOOR, SKY, SKY_WORDS, ROOM_GLOW } from '../look.js';
+import {
+  PROMPT, PROMPT_DOOR, SKY, SKY_WORDS, EXPOSURE, MOON, CANDLE, ROOM, ROOM_GLOW, WAX_WORDS,
+} from '../look.js';
 
 const WALK = 1.55;           // m/s: a careful creep (the hall takes about 20 s)
 const ACCEL = 7, DECEL = 10; // m/s²
@@ -54,7 +55,6 @@ const CLOSE = { walk: 1.2, idle: 3.2, push: -4, swipe: 10 };
 // The door ajar (radians); its gap this far in from the latch; and how near
 // and far the door may be.
 const AJAR = 0.6, PEEK_IN = 0.15, NEAR = 3.0, FAR = 10;
-const WARM = new THREE.Color(1.0, 0.72, 0.42);
 
 export const SOUNDS = ['breath', 'catch', 'creak', 'drone', 'knock', 'match', 'rattle', 'shriek', 'slam', 'snuff', 'tick', 'wail', 'whisper', 'whoosh'];
 export const GOAL = 'Light the candelabras!';
@@ -68,6 +68,7 @@ export function create(game) {
   renderer.prompt = PROMPT;
   scene.background = new THREE.Color(SKY);
   renderer.backgroundDescription = SKY_WORDS;
+  renderer.exposure = EXPOSURE;
   camera.fov = 62;
   camera.updateProjectionMatrix();
   camera.rotation.order = 'YXZ';
@@ -75,14 +76,17 @@ export function create(game) {
   const play = (name, opts) => sfx.play(name, opts);
   const shade = new Shade();
 
-  const light = new Lighting();
-  const candleLight = light.add({ color: CANDLE, I: 0, r: 1.45 });
-  const hall = buildHall(root, light);
-  // The warm light spilling out of the door that opens at the end.
-  const spill = light.add({ color: WARM, I: 0, r: 1.5 });
-  const wedge = glowWedge();
-  wedge.visible = false;
-  root.add(wedge);
+  // No sun: faint cold moonlight from the north-east, in through the windows
+  // of leg 1's east wall and leg 2's north wall.
+  const moon = new THREE.DirectionalLight(MOON[0], MOON[1]);
+  moon.position.set(30, 22, -40);
+  moon.userData.angle = 0.02;
+  root.add(moon, moon.target);
+  const hall = buildHall(root);
+  // The warm room behind the door that opens at the end: a lamp in it (and its
+  // walls glow), whose light spills out through the gap.
+  const spill = new THREE.PointLight(ROOM[0], 0, 8);
+  root.add(spill);
 
   const obstacles = []; // circles the player walks round: { x, z, r }
   const cands = CANDELABRAS.map((c) => {
@@ -92,8 +96,7 @@ export function create(game) {
     built.root.position.set(c.x, 0, c.z);
     root.add(built.root);
     obstacles.push({ x: c.x, z: c.z, r: 0.9 }); // (wide enough that its candles never pass right at the lens)
-    const l = light.add({ position: new THREE.Vector3(c.x, 1.45, c.z), color: CANDLE, I: 0, r: 1.6 });
-    return { ...c, ...built, light: l, t: -1, lit: false, at: new THREE.Vector3(c.x, 1.3, c.z) };
+    return { ...c, ...built, t: -1, lit: false, at: new THREE.Vector3(c.x, 1.3, c.z) };
   });
   const portraits = PORTRAITS.map((p, i) => {
     const built = portrait({ seed: i + 1, follows: p.follows });
@@ -117,17 +120,10 @@ export function create(game) {
   chair.rotation.y = 2.3;
   root.add(chair);
   obstacles.push({ x: SHEETED_CHAIR.x, z: SHEETED_CHAIR.z, r: 0.85 });
-  for (const o of [...cands.map((c) => c.root), ...portraits.map((p) => p.root), clock.root, table, chair]) {
-    o.updateMatrixWorld(true);
-    light.trackAll(o, { moving: o === clock.root || portraits.some((p) => p.root === o) });
-  }
-  // (Unlit wax catches what little light there is: dark candles read as pale shapes.)
-  for (const k of [...cands.flatMap((c) => c.candles), ...hall.lintel]) k.wax.userData.minLight = 0.1;
 
   const hand = heldCandle();
   hand.root.position.copy(HAND);
   camera.add(hand.root);
-  for (const m of hand.parts) light.track(m, { moving: true, words: false });
 
   const frights = new Frights({
     portraits,
@@ -139,7 +135,6 @@ export function create(game) {
     play,
   });
 
-  const ghostLight = light.add({ color: GHOSTLY, I: 0, r: 1.6 });
   const ghost = new Ghost(root, { sfx: play });
   ghost.root.position.set(1.1, 0.3, -12.5); // (by the wall far ahead, not dead centre in the first frame)
   let peeksDone = 0, whispered = false;
@@ -147,7 +142,7 @@ export function create(game) {
   const pos = new THREE.Vector3(0, 0, 0);
   const vel = new THREE.Vector2();
   let yaw = 0, pitch = -0.04, lookedAt = -10, bob = 0, speedK = 0, reach = 0, reachT = -1;
-  let litCount = 0, lintelLit = 0, hinted = false, catchFlash = 0, nextDrone = 0.6;
+  let litCount = 0, lintelLit = 0, hinted = false, nextDrone = 0.6;
   // The candle: 'out' (the start: a match is struck at once), 'striking', 'on'.
   let candle = 'out', candleT = 0;
   let end = null, cut = false;
@@ -156,7 +151,7 @@ export function create(game) {
   let hearts = HEARTS, safeUntil = -1, stagger = 0, flash = 0, jolt = 0;
   const heartsUI = hud.hearts(HEARTS);
   const knockJolt = { v: 0, a: 0 };
-  const eye = new THREE.Vector3(), look = new THREE.Vector3(), flamePos = new THREE.Vector3();
+  const eye = new THREE.Vector3(), look = new THREE.Vector3();
   const steerTo = new THREE.Vector2(), at2 = new THREE.Vector2(), _g = new THREE.Vector3(), _d = new THREE.Vector3();
   const yawTo = (x, z) => Math.atan2(pos.x - x, pos.z - z); // (the view's yaw that looks at (x, z))
 
@@ -209,18 +204,16 @@ export function create(game) {
   }
 
   function handWords(on) {
-    hand.root.userData.description = on ? 'a hand in a smooth glossy black leather glove holding a lit candle' : 'a hand in a smooth glossy black leather glove holding an unlit candle';
-    hand.wax.userData.description = on ? 'a lit ivory wax candle with drips of wax' : 'an unlit ivory wax candle';
+    hand.wax.userData.description = on ? 'lit ivory wax candle with drips of wax' : 'unlit ivory wax candle';
   }
   handWords(false);
 
+  // A candle lit, or snuffed (its light follows its flame in frame()).
   function setCandle(k, on) {
     k.lit = on;
     k.flame.visible = on;
-    k.wax.userData.minLight = on ? 0 : 0.1;
-    k.wax.userData.words = on ? 'a lit ivory wax candle' : 'an unlit ivory wax candle, its wick smoking, just blown out';
-    k.wax.userData.mood = null; // (its words are made again from the new ones)
-    if (!on) k.k = 0;
+    k.wax.userData.description = on ? WAX_WORDS.lit : WAX_WORDS.out;
+    if (!on) { k.k = 0; k.light.intensity = 0; }
   }
 
   function startLighting(c) {
@@ -279,11 +272,10 @@ export function create(game) {
     const p = peekAt(d, 0.5);
     d.angle = angleTo(yaw, yawTo(p.x, p.z));
     play('creak', { volume: 0.75, rate: 1.05 });
-    d.room.material.color.set(ROOM_GLOW);
-    d.room.userData.description = 'a warmly lit little room beyond the door, soft golden lamplight';
-    spill.position.copy(p).setY(1.0);
-    wedge.position.copy(peekAt(d, 0, _d)).setY(0.015);
-    wedge.rotation.y = Math.atan2(d.inward.x, d.inward.z);
+    d.room.material.emissive.set(ROOM_GLOW);
+    d.room.userData.description = 'small room glowing with warm golden lamplight';
+    // (The lamp in the room, just in from the gap, so its light falls out through it.)
+    spill.position.copy(peekAt(d, -0.35)).setY(0.9);
     renderer.prompt = PROMPT_DOOR;
     // (The door just left of the middle of the view: the candle is on the right.)
     seized = { yaw: yawTo(p.x, p.z) - 0.05, until: t + 10, rate: Math.abs(d.angle) > 0.5 ? 6 : 3, end: true };
@@ -388,7 +380,6 @@ export function create(game) {
         c.candles.forEach((k, i) => {
           if (before < CATCH[i] && c.t >= CATCH[i]) {
             setCandle(k, true);
-            catchFlash = 1;
             play('catch', { volume: 0.7, rate: 1 + i * 0.12 + litCount * 0.03 });
           }
         });
@@ -466,29 +457,27 @@ export function create(game) {
 
       const lit = candleK(candle, candleT);
       const flick = 1 + Math.sin(t * 11.3) * 0.05 + Math.sin(t * 17.9 + 1) * 0.04 + Math.sin(t * 3.1) * 0.03;
+      const [fw, fh] = FLAME_SIZE;
       hand.flame.visible = lit > 0.02;
-      hand.flame.scale.set(0.05 * Math.min(1, lit) * (2 - flick), 0.11 * lit * flick, 0.05 * Math.min(1, lit) * (2 - flick));
+      hand.flame.scale.set(fw * Math.min(1, lit) * (2 - flick), fh * lit * flick, fw * Math.min(1, lit) * (2 - flick));
       hand.flame.rotation.z = Math.sin(t * 2.3) * 0.08 - Math.min(speedK, 2.5) * 0.12;
-      hand.flame.getWorldPosition(flamePos);
-      candleLight.position.copy(flamePos);
-      candleLight.I = 1.35 * Math.min(lit, 1.6) * flick;
+      hand.light.intensity = CANDLE[1] * Math.min(lit, 1.6) * flick;
       for (const c of cands) {
-        let on = 0;
         for (const k of c.candles) {
           if (!k.lit) continue;
           k.k = Math.min(1, k.k + dt / 0.3);
           const f = 1 + Math.sin(t * 12 + k.tip.x * 40) * 0.06 + Math.sin(t * 7.3 + k.tip.x * 13) * 0.04;
           const s = ease.outBack(k.k);
-          k.flame.scale.set(0.08 * s, 0.17 * s * f, 0.08 * s);
-          on += k.k;
+          k.flame.scale.set(fw * s, fh * s * f, fw * s);
+          k.light.intensity = k.light.userData.full * k.k * f;
         }
-        c.light.I = 1.15 * (on / 3) * (1 + Math.sin(t * 9 + c.x) * 0.03);
       }
       for (const k of hall.lintel) {
         if (!k.lit) continue;
         k.k = Math.min(1, k.k + dt / 0.4);
-        const [fw, fh] = LINTEL_FLAME, e = ease.outBack(k.k);
-        k.flame.scale.set(fw * e, fh * e * (1 + Math.sin(t * 10 + k.wax.position.z * 9) * 0.05), fw * e);
+        const [lw, lh] = LINTEL_FLAME, e = ease.outBack(k.k), f = 1 + Math.sin(t * 10 + k.wax.position.z * 9) * 0.05;
+        k.flame.scale.set(lw * e, lh * e * f, lw * e);
+        k.light.intensity = k.light.userData.full * k.k * f;
       }
 
       knockJolt.a += knockJolt.v * dt;
@@ -500,27 +489,16 @@ export function create(game) {
         // (A little give, as if pushed from inside.)
         const k = ease.outBack(clamp(door.k / 0.45), 1.6);
         door.swing.rotation.y = door.open * AJAR * k;
-        spill.I = 1.6 * clamp(door.k / 0.35);
-        wedge.visible = true;
-        wedge.scale.setScalar(0.3 + 0.7 * clamp(door.k / 0.35));
+        const on = clamp(door.k / 0.35);
+        spill.intensity = ROOM[1] * on;
+        door.room.material.emissiveIntensity = 0.6 * on;
       }
 
       ghost.frame(dt, t);
-      ghostLight.position.copy(ghost.pos).setY(ghost.pos.y + 1.3);
-      ghostLight.I = ghost.root.visible ? 0.3 * ghost.vis : 0;
       frights.frame(dt, t, camera.position);
-      light.frame();
 
-      // The edges of the view close in, and open out near a lit candelabra,
-      // as one catches, and toward the door's warm light.
-      catchFlash = Math.max(0, catchFlash - dt / 0.9);
       flash = Math.max(0, flash - dt / FLASH);
-      let warm = 0;
-      for (const c of cands) if (c.light.I > 0) warm = Math.max(warm, smoothstep(5, 1.8, Math.hypot(c.x - pos.x, c.z - pos.z)) * c.light.I / 1.15);
-      warm = Math.max(warm * 0.7, catchFlash * 0.6);
-      if (door) warm = Math.max(warm, 0.55 * clamp(door.k / 0.35));
       shade.set({
-        close: 1 - warm,
         // (Cold as the ghost comes, and, breathing, down to your last heart.)
         cold: Math.max(end && end.t >= END.shriek ? 0.35 : 0, hearts === 1 ? 0.45 + 0.15 * Math.sin(t * 5) : 0),
         flash,
@@ -531,17 +509,6 @@ export function create(game) {
     // (main.js disposes the meshes under root and the camera.)
     dispose() { shade.dispose(); },
   };
-}
-
-// The wedge of warm light a door ajar throws across the floor: narrow at the
-// door, wider out into the hall (along +z, which the game turns to face the hall).
-function glowWedge() {
-  const shape = new THREE.Shape();
-  shape.moveTo(-0.3, 0); shape.lineTo(0.3, 0); shape.lineTo(0.8, 2.2); shape.lineTo(-0.5, 2.2); shape.closePath();
-  const g = new THREE.ShapeGeometry(shape).rotateX(Math.PI / 2);
-  const m = glow(g, ROOM_GLOW, 'a narrow wedge of warm golden light spilling across the floorboards from a door ajar');
-  m.material.side = THREE.DoubleSide;
-  return m;
 }
 
 // How lit the hand's candle is: 0 (out) .. 1, with a flare as the match catches.

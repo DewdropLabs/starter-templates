@@ -1,5 +1,6 @@
-// Little effects: the sword's slash, a hit's starburst and sparks, stone
-// chips and dust when the dragon stomps. Each is a small reused pool.
+// Little effects: the sword's slash, a hit's starburst and sparks (all three
+// glow), stone chips and dust when the dragon stomps. Each is a small reused
+// pool.
 //
 //   const fx = new Fx(root, camera);
 //   fx.slash(center, yaw, tilt, side)  // an arc round the knight, in the swing's plane
@@ -9,7 +10,7 @@
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { rng, ease } from '../core/util.js';
-import { C, W, EFFECTS } from '../look.js';
+import { C, W, EFFECTS, GLOW, glow } from '../look.js';
 
 // A flat star of `points` points, in the xy plane.
 function star(points = 8, outer = 0.75, inner = 0.22) {
@@ -41,12 +42,12 @@ const _to = new THREE.Vector3();
 export class Fx {
   constructor(parent, camera) {
     this.camera = camera;
-    this.root = group('effects');
+    this.root = group();
     parent.add(this.root);
     this.r = rng(77);
     const slashGeo = crescent();
     this.slashes = Array.from({ length: 3 }, () => {
-      const m = mesh(slashGeo, C.slash, EFFECTS.slash);
+      const m = mesh(slashGeo, glow(C.slash, GLOW.slash), EFFECTS.slash);
       m.material.side = THREE.DoubleSide;
       m.visible = false;
       this.root.add(m);
@@ -55,14 +56,14 @@ export class Fx {
     // (Long shards, stretched along their flight: they read as streaks.)
     const shard = new THREE.OctahedronGeometry(0.13).scale(0.8, 0.8, 2.6);
     this.sparkPool = Array.from({ length: 20 }, (_, i) => {
-      const m = mesh(shard, i % 2 ? C.fireHot : C.spark, EFFECTS.spark);
+      const m = mesh(shard, glow(i % 2 ? C.fireHot : C.spark, GLOW.spark), EFFECTS.spark);
       m.visible = false;
       this.root.add(m);
       return { m, v: new THREE.Vector3(), t: 9, life: 0.32 };
     });
     const burst = star();
     this.bursts = Array.from({ length: 2 }, () => {
-      const m = mesh(burst, C.burst, EFFECTS.burst);
+      const m = mesh(burst, glow(C.burst, GLOW.burst), EFFECTS.burst);
       m.material.side = THREE.DoubleSide;
       m.visible = false;
       this.root.add(m);
@@ -70,7 +71,7 @@ export class Fx {
     });
     const chip = new THREE.DodecahedronGeometry(0.3, 0);
     this.chips = Array.from({ length: 12 }, () => {
-      const m = mesh(chip, C.stoneDark, EFFECTS.chip);
+      const m = mesh(chip, C.slab, EFFECTS.chip);
       m.visible = false;
       this.root.add(m);
       return { m, v: new THREE.Vector3(), spin: new THREE.Vector3(), t: 9, life: 0.9 };

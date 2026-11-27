@@ -60,7 +60,7 @@ export function buildArena(root) {
     cp.setX(i, x * k); cp.setZ(i, z * k);
   }
   cliffGeo.computeVertexNormals();
-  arena.add(mesh(cliffGeo, C.rockDark, W.cliff, { position: [0, -36, 0] }));
+  arena.add(mesh(cliffGeo, C.rock, W.cliff, { position: [0, -36, 0] }));
 
   // Cracks from the middle outward, as if the floor broke where it landed.
   const cracks = [];
@@ -80,7 +80,7 @@ export function buildArena(root) {
     const a = (i / 16) * Math.PI * 2 + r.range(-0.15, 0.15), d = r.range(16.8, 19.5), s = r.range(0.5, 1.1);
     rubble.push({ position: [Math.sin(a) * d, s * 0.35, Math.cos(a) * d], rotation: [r.range(0, 3), r.range(0, 3), r.range(0, 3)], scale: [s * 1.1, s * 0.7, s * 0.9] });
   }
-  arena.add(instanced(new THREE.DodecahedronGeometry(1, 0), C.stoneDark, W.rubble, rubble));
+  arena.add(instanced(new THREE.DodecahedronGeometry(1, 0), C.slab, W.rubble, rubble));
 
   const columnAngles = [0.35, 0.95, 1.6, 2.15, 2.75, 3.55, 4.2, 4.75, 5.35, 5.9];
   columnAngles.forEach((a, i) => {
@@ -91,19 +91,19 @@ export function buildArena(root) {
     // (Some have a fallen drum beside them.)
     if (i % 3 === 1) {
       const fa = a + r.range(-0.5, 0.5), fd = d - r.range(1.5, 2.6);
-      arena.add(mesh(fluted(0.75, 0.75, r.range(1.6, 2.4)), C.columnDark, W.column,
+      arena.add(mesh(fluted(0.75, 0.75, r.range(1.6, 2.4)), C.column, W.column,
         { position: [Math.sin(fa) * fd, 0.62, Math.cos(fa) * fd], rotation: [Math.PI / 2, 0, fa + r.range(-0.6, 0.6)] }));
     }
   });
 
   const arch = group(W.arch);
   for (const s of [-1, 1]) {
-    arch.add(mesh(new THREE.BoxGeometry(2.2, 10, 2.2), C.column, W.arch, { position: [s * 5.2, 5, 0] }));
-    arch.add(mesh(new THREE.BoxGeometry(2.8, 0.8, 2.8), C.columnDark, W.capital, { position: [s * 5.2, 10.2, 0] }));
+    arch.add(mesh(new THREE.BoxGeometry(2.2, 10, 2.2), C.column, undefined, { position: [s * 5.2, 5, 0] }));
+    arch.add(mesh(new THREE.BoxGeometry(2.8, 0.8, 2.8), C.slab, undefined, { position: [s * 5.2, 10.2, 0] }));
   }
   const ring = new THREE.TorusGeometry(5.2, 1.0, 8, 24, Math.PI * 0.62);
   ring.rotateZ(Math.PI * 0.02);
-  arch.add(mesh(ring, C.column, W.arch, { position: [0, 10.4, 0] }));
+  arch.add(mesh(ring, C.column, undefined, { position: [0, 10.4, 0] }));
   arch.position.set(0, 0, -(COLUMN_R + 4.5));
   arena.add(arch);
   keepOut.push({ center: new THREE.Vector3(-5.2, 3, -(COLUMN_R + 4.5)), radius: 2.6 }, { center: new THREE.Vector3(5.2, 3, -(COLUMN_R + 4.5)), radius: 2.6 });
@@ -111,9 +111,9 @@ export function buildArena(root) {
   const peaks = [];
   for (let i = 0; i < 16; i++) {
     const a = (i / 16) * Math.PI * 2 + r.range(-0.12, 0.12), d = r.range(260, 420), h = r.range(70, 170);
-    peaks.push({ position: [Math.sin(a) * d, h / 2 - 70, Math.cos(a) * d], rotation: [0, r.range(0, 3), r.range(-0.08, 0.08)], scale: [h * r.range(0.5, 0.8), h, h * r.range(0.5, 0.8)], color: i % 2 ? C.peak : C.peakFar });
+    peaks.push({ position: [Math.sin(a) * d, h / 2 - 70, Math.cos(a) * d], rotation: [0, r.range(0, 3), r.range(-0.08, 0.08)], scale: [h * r.range(0.5, 0.8), h, h * r.range(0.5, 0.8)] });
   }
-  arena.add(instanced(new THREE.ConeGeometry(1, 1, 5), '#ffffff', W.peak, peaks));
+  arena.add(instanced(new THREE.ConeGeometry(1, 1, 5), C.peak, W.peak, peaks));
 
   return { keepOut };
 }
@@ -122,7 +122,7 @@ export function buildArena(root) {
 function column(x, z, h, r) {
   const g = group(W.column);
   g.position.set(x, 0, z);
-  g.add(mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), C.columnDark, W.capital, { position: [0, 0.25, 0] }));
+  g.add(mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), C.slab, undefined, { position: [0, 0.25, 0] }));
   const shaft = fluted(0.78, 0.86, h);
   // Break the top off, jagged.
   const p = shaft.attributes.position;
@@ -130,8 +130,8 @@ function column(x, z, h, r) {
     if (p.getY(i) > h / 2 - 0.01) p.setY(i, p.getY(i) - r.range(0, 0.9) * (0.5 + 0.5 * Math.sin(Math.atan2(p.getX(i), p.getZ(i)) * 3 + x)));
   }
   shaft.computeVertexNormals();
-  g.add(mesh(shaft, C.column, W.column, { position: [0, 0.5 + h / 2, 0], rotation: [r.range(-0.04, 0.04), r.range(0, 3), r.range(-0.04, 0.04)] }));
-  if (h > 6) g.add(mesh(new THREE.BoxGeometry(2.0, 0.55, 2.0), C.columnDark, W.capital, { position: [0, 0.5 + h + 0.1, 0], rotation: [0.12, 0.3, -0.08] }));
+  g.add(mesh(shaft, C.column, undefined, { position: [0, 0.5 + h / 2, 0], rotation: [r.range(-0.04, 0.04), r.range(0, 3), r.range(-0.04, 0.04)] }));
+  if (h > 6) g.add(mesh(new THREE.BoxGeometry(2.0, 0.55, 2.0), C.slab, undefined, { position: [0, 0.5 + h + 0.1, 0], rotation: [0.12, 0.3, -0.08] }));
   return g;
 }
 

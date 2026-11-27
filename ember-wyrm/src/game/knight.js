@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { Character } from '../core/character.js';
 import { mesh, group } from '../core/look.js';
 import { lerp, clamp, damp } from '../core/util.js';
-import { C, KNIGHT } from '../look.js';
+import { C, KNIGHT, STEEL, BLADE, GOLD } from '../look.js';
 
 // Joint angles. Right (sword) arm: sx, sy, sz the shoulder, el the elbow,
 // wr the sword in the hand. Left (shield) arm: lx, ly, lz, lel. sp the
@@ -45,14 +45,14 @@ export class Knight {
   constructor() {
     const hero = this.hero = new Character({
       scale: 1.06, who: KNIGHT.body, coat: 0.55,
-      colors: { top: C.steel, bottom: C.steelDark, shoes: C.steelDark, hands: C.steelDark, belt: C.leather, cape: C.cloak },
+      colors: { top: STEEL, bottom: STEEL, shoes: STEEL, hands: STEEL, belt: C.leather, cape: C.cloak },
       words: { top: KNIGHT.mail, bottom: KNIGHT.greaves, shoes: KNIGHT.boots, hands: KNIGHT.gauntlet, belt: KNIGHT.belt, cape: KNIGHT.cloak, coat: KNIGHT.tabard },
     });
     this.root = hero.root;
     const rig = hero.rig, B = hero.B, R = B.headR;
 
-    // The tabard's skirt is blue (Character dresses the coat in the top's colour).
-    rig.coat.traverse((m) => { if (m.isMesh) { m.material.color.set(C.tabard); m.userData.description = KNIGHT.tabard; } });
+    // The tabard's skirt is blue cloth (Character dresses the coat like the top, in steel).
+    rig.coat.traverse((m) => { if (m.isMesh) { m.material.color.set(C.tabard); m.material.metalness = 0; m.material.roughness = 0.85; m.userData.description = KNIGHT.tabard; } });
     const shell = new THREE.LatheGeometry([[0, -0.02], [0.92, 0.0], [0.96, 0.4], [0.99, 0.75], [0.8, 0.95], [0.45, 1.0]].map(([x, y]) => new THREE.Vector2(x * B.torsoR * 1.08, y * B.torsoLen)), 18);
     shell.scale(1.02, 1, 0.78);
     rig.spine.add(mesh(shell, C.tabard, KNIGHT.tabard));
@@ -61,28 +61,28 @@ export class Knight {
 
     // The great helm: eye slit, breathing cross, a short blue crest.
     const helm = group(KNIGHT.helm);
-    helm.add(mesh(new THREE.CylinderGeometry(R * 1.22, R * 1.3, R * 2.35, 16).translate(0, R * 0.1, 0), C.steel, KNIGHT.helm));
-    helm.add(mesh(new THREE.CylinderGeometry(R * 1.05, R * 1.22, R * 0.3, 16).translate(0, R * 1.42, 0), C.steelDark, KNIGHT.helm));
-    helm.add(mesh(new THREE.BoxGeometry(R * 1.7, R * 0.16, R * 0.4), C.visor, KNIGHT.visor, { position: [0, R * 0.32, R * 1.12] }));
-    helm.add(mesh(new THREE.BoxGeometry(R * 0.14, R * 0.9, R * 0.3), C.steelDark, KNIGHT.helm, { position: [0, -R * 0.2, R * 1.2] }));
-    helm.add(mesh(new THREE.BoxGeometry(R * 0.36, R * 0.5, R * 2.3), C.tabard, KNIGHT.crest, { position: [0, R * 1.75, -R * 0.15] }));
+    helm.add(mesh(new THREE.CylinderGeometry(R * 1.22, R * 1.3, R * 2.35, 16).translate(0, R * 0.1, 0), STEEL));
+    helm.add(mesh(new THREE.CylinderGeometry(R * 1.05, R * 1.22, R * 0.3, 16).translate(0, R * 1.42, 0), STEEL));
+    helm.add(mesh(new THREE.BoxGeometry(R * 1.7, R * 0.16, R * 0.4), C.visor, undefined, { position: [0, R * 0.32, R * 1.12] }));
+    helm.add(mesh(new THREE.BoxGeometry(R * 0.14, R * 0.9, R * 0.3), STEEL, undefined, { position: [0, -R * 0.2, R * 1.2] }));
+    helm.add(mesh(new THREE.BoxGeometry(R * 0.36, R * 0.5, R * 2.3), C.tabard, undefined, { position: [0, R * 1.75, -R * 0.15] }));
     rig.head.add(helm);
 
     for (const side of ['L', 'R']) {
       const s = side === 'L' ? 1 : -1;
-      rig[`shoulder${side}`].add(mesh(new THREE.SphereGeometry(0.15, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.15, 0.9, 1.1), C.steel, KNIGHT.pauldron, { position: [s * 0.02, 0.03, 0], rotation: [0, 0, s * 0.35] }));
-      rig[`elbow${side}`].add(mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.12, 12), C.steelDark, KNIGHT.gauntlet, { position: [0, -B.forearm * 0.8, 0] }));
+      rig[`shoulder${side}`].add(mesh(new THREE.SphereGeometry(0.15, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55).scale(1.15, 0.9, 1.1), STEEL, KNIGHT.pauldron, { position: [s * 0.02, 0.03, 0], rotation: [0, 0, s * 0.35] }));
+      rig[`elbow${side}`].add(mesh(new THREE.CylinderGeometry(0.07, 0.085, 0.12, 12), STEEL, KNIGHT.gauntlet, { position: [0, -B.forearm * 0.8, 0] }));
     }
     // (A longer cloak, to the calves.)
     rig.cape.scale.set(0.92, 1.12, 1.0);
 
     // The longsword, along the hand's -y: pommel, grip, crossguard, blade.
-    const sword = this.sword = new THREE.Group();
-    sword.add(mesh(new THREE.SphereGeometry(0.035, 10, 8), C.gold, KNIGHT.guard, { position: [0, 0.13, 0] }));
-    sword.add(mesh(new THREE.CylinderGeometry(0.022, 0.024, 0.22, 8).translate(0, 0.02, 0), C.leather, KNIGHT.hilt));
-    sword.add(mesh(new THREE.BoxGeometry(0.3, 0.035, 0.05), C.gold, KNIGHT.guard, { position: [0, -0.09, 0] }));
+    const sword = this.sword = group(KNIGHT.sword);
+    sword.add(mesh(new THREE.SphereGeometry(0.035, 10, 8), GOLD, undefined, { position: [0, 0.13, 0] }));
+    sword.add(mesh(new THREE.CylinderGeometry(0.022, 0.024, 0.22, 8).translate(0, 0.02, 0), C.leather));
+    sword.add(mesh(new THREE.BoxGeometry(0.3, 0.035, 0.05), GOLD, undefined, { position: [0, -0.09, 0] }));
     const blade = new THREE.CylinderGeometry(0.012, 0.035, 1.0, 4).rotateY(Math.PI / 4).scale(1, 1, 0.35).translate(0, -0.6, 0);
-    sword.add(mesh(blade, C.blade, KNIGHT.blade));
+    sword.add(mesh(blade, BLADE));
     rig.handR.add(sword);
     this.tipLocal = new THREE.Vector3(0, -1.1, 0);
 
@@ -94,14 +94,14 @@ export class Knight {
     shape.quadraticCurveTo(-w, -h * 0.25, -w, h * 0.35);
     const face = new THREE.ExtrudeGeometry(shape, { depth: 0.04, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.02, bevelSegments: 1 });
     const shield = group(KNIGHT.shield);
-    shield.add(mesh(face, C.tabard, KNIGHT.shield));
-    const sun = mesh(new THREE.CircleGeometry(0.1, 12), C.gold, KNIGHT.emblem, { position: [0, 0.02, 0.062] });
+    shield.add(mesh(face, C.tabard));
+    const sun = mesh(new THREE.CircleGeometry(0.1, 12), C.gold, undefined, { position: [0, 0.02, 0.062] });
     shield.add(sun);
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2;
-      shield.add(mesh(new THREE.ConeGeometry(0.03, 0.09, 4), C.gold, KNIGHT.emblem, { position: [Math.sin(a) * 0.15, 0.02 + Math.cos(a) * 0.15, 0.062], rotation: [0, 0, -a] }));
+      shield.add(mesh(new THREE.ConeGeometry(0.03, 0.09, 4), C.gold, undefined, { position: [Math.sin(a) * 0.15, 0.02 + Math.cos(a) * 0.15, 0.062], rotation: [0, 0, -a] }));
     }
-    shield.add(mesh(new THREE.BoxGeometry(w * 2 + 0.05, 0.035, 0.07), C.steelDark, KNIGHT.rim, { position: [0, h * 0.35 + 0.01, 0.02] }));
+    shield.add(mesh(new THREE.BoxGeometry(w * 2 + 0.05, 0.035, 0.07), STEEL, undefined, { position: [0, h * 0.35 + 0.01, 0.02] }));
     shield.position.set(0.09, -B.forearm * 0.55, 0.02);
     shield.rotation.set(0, Math.PI / 2, 0);
     rig.elbowL.add(shield);

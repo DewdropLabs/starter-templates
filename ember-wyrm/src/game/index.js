@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { sfx } from '../core/audio.js';
 import { clamp, lerp, ease, angleTo } from '../core/util.js';
-import { PROMPT, SKY, SKY_WORDS, C } from '../look.js';
+import { PROMPT, SKY, SKY_WORDS, LIGHT, C } from '../look.js';
 import { buildArena, ROAM } from './arena.js';
 import { Dragon, BLUE } from './dragon.js';
 import { Brain, PASSIVE_KNOCK, FIRST_ATTACK, segDist } from './brain.js';
@@ -40,6 +40,12 @@ export function create({ root, scene, camera, renderer, input, hud, end }) {
   scene.background = new THREE.Color(SKY);
   renderer.backgroundDescription = SKY_WORDS;
   input.setButtons(BUTTONS);
+
+  // The low dusk sun and the violet sky.
+  const sun = new THREE.DirectionalLight(LIGHT.sun.color, LIGHT.sun.intensity);
+  sun.position.set(...LIGHT.sun.from).setLength(80);
+  sun.userData.angle = LIGHT.sun.angle;
+  root.add(sun, sun.target, new THREE.HemisphereLight(LIGHT.sky.color, LIGHT.sky.ground, LIGHT.sky.intensity));
 
   const arena = buildArena(root);
   const dragon = new Dragon();

@@ -20,9 +20,9 @@ import { clamp, lensScale, rng, smoothstep } from '../core/util.js';
 const ROOT = new THREE.Vector3(1.35, 0.3, 0.6), WING = new THREE.Vector3(1.75, 0.36, 0.3);
 const LEVELS = [
   null,
-  { from: ROOT, every: 0.12, r: [0.16, 0.4], life: 0.55, color: '#d6cec4', words: 'a thin wisp of pale grey smoke' },
-  { from: ROOT, every: 0.1, r: [0.22, 0.55], life: 0.65, color: '#9a928a', words: 'a soft puff of grey smoke' },
-  { from: WING, every: 0.1, r: [0.22, 0.52], life: 0.7, color: '#7a726c', words: 'a soft puff of dark grey smoke from a burning wing', fire: true },
+  { from: ROOT, every: 0.12, r: [0.16, 0.4], life: 0.55, color: '#d6cec4', words: 'thin wisps of pale grey smoke' },
+  { from: ROOT, every: 0.1, r: [0.22, 0.55], life: 0.65, color: '#9a928a', words: 'soft puffs of grey smoke' },
+  { from: WING, every: 0.1, r: [0.22, 0.52], life: 0.7, color: '#7a726c', words: 'soft puffs of dark grey smoke from burning wing', fire: true },
 ];
 const CARRY = 0.9;             // share of the glider's velocity a puff keeps (it falls back at the rest)
 const DRIFT = [1.6, 1.0];       // m/s more: out to the glider's left, and up
@@ -44,15 +44,16 @@ export class Damage {
       root.add(m);
       this.puffs.push({ mesh: m, vel: new THREE.Vector3(), age: 1, life: 1, r: [0, 0] });
     }
-    // The flames: little teardrop cones, an orange outer and a yellow heart, on the left wing.
-    this.fire = group('small bright flickering orange flames licking up off a glider wing');
+    // The flames: little teardrop cones, an orange outer and a yellow heart, on
+    // the left wing. They glow, and light the wing round them.
+    this.fire = group('small bright flickering orange flames on glider wing');
     this.fire.visible = false;
     const cone = new THREE.ConeGeometry(0.5, 1.4, 8).translate(0, 0.7, 0);
     this.flames = FLAMES.map(([x, y, z, size], i) => {
       const g = new THREE.Group();
       g.position.set(x, y, z);
-      g.add(mesh(cone, '#ff6a12', 'a bright saturated orange flame'));
-      g.add(mesh(cone, '#ffc21c', 'the bright yellow heart of a flame', { scale: [0.55, 0.7, 0.55], position: [0, 0.05, 0.08] }));
+      g.add(mesh(cone, '#ff6a12', undefined, { glow: ['#ff6a12', 3] }));
+      g.add(mesh(cone, '#ffc21c', 'bright yellow hearts of small flames', { scale: [0.55, 0.7, 0.55], position: [0, 0.05, 0.08], glow: ['#ffc21c', 3] }));
       // (Leaning back, the way the wind blows them.)
       g.rotation.x = -1.0;
       this.fire.add(g);

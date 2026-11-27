@@ -12,7 +12,7 @@ import { Farmer, BEATS } from './farmer.js';
 import { Hen, Sheep } from './critters.js';
 import { GiantPumpkin } from './pumpkin.js';
 import { Clods, Flights, Droplets } from './fx.js';
-import { PROMPT, SKY_WORDS, C } from '../look.js';
+import { PROMPT, SKY_WORDS, C, addLights } from '../look.js';
 
 const START = new THREE.Vector3(-2.25, 0, 0.4);
 const HEN_START = new THREE.Vector3(-3.4, 0, 0.45); // beside the farmer, screen right: the side she'll run off to
@@ -80,6 +80,7 @@ export function create({ root, scene, camera, renderer, input, hud, end }) {
   renderer.prompt = PROMPT;
   scene.background = new THREE.Color(C.sky);
   renderer.backgroundDescription = SKY_WORDS;
+  addLights(root);
   const rand = rng(4242);
   const collider = new Collider();
 

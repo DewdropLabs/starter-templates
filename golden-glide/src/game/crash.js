@@ -1,6 +1,6 @@
 // A crash: the glider breaks into a few big pieces (its two wings, its tail,
 // and the fuselage with the pilot still in it) that tumble and bounce, with a
-// puff of golden dust and a spray of straw.
+// puff of dust and a spray of straw.
 //
 //   const wreck = new Wreck(root, glider, topAt);
 //   wreck.break(velocity);     // from the glider as it's posed now (velocity: its world m/s); the caller hides the glider
@@ -10,7 +10,6 @@
 import * as THREE from 'three';
 import { mesh } from '../core/look.js';
 import { lensScale, rng, smoothstep } from '../core/util.js';
-import { gold } from '../look.js';
 
 const GRAVITY = 16;          // m/s²
 const KEEP = 0.35;           // share of the glider's speed the pieces carry on with
@@ -50,7 +49,7 @@ export class Wreck {
     const puffGeo = new THREE.IcosahedronGeometry(1, 1);
     this.puffs = [];
     for (let k = 0; k < PUFFS; k++) {
-      const m = mesh(puffGeo, gold(DUST[k % DUST.length]), 'a big soft billowing puff of golden dust kicked up off a dry field in the evening sun');
+      const m = mesh(puffGeo, DUST[k % DUST.length], 'big soft billowing puffs of dry ochre dust');
       m.visible = false;
       root.add(m);
       this.puffs.push({ mesh: m, vel: new THREE.Vector3(), age: PUFF_LIFE, grow: 1 });
@@ -58,7 +57,7 @@ export class Wreck {
     const strawGeo = new THREE.BoxGeometry(0.16, 0.16, 1.3);
     this.straws = [];
     for (let k = 0; k < STRAWS; k++) {
-      const m = mesh(strawGeo, gold(k % 2 ? '#f0d060' : '#e4b84a'), 'a long stalk of golden straw flying through the air');
+      const m = mesh(strawGeo, k % 2 ? '#f0d060' : '#e4b84a', 'long stalks of yellow straw flying through the air');
       m.visible = false;
       root.add(m);
       this.straws.push({ mesh: m, vel: new THREE.Vector3(), spin: new THREE.Vector3(), age: STRAW_LIFE });

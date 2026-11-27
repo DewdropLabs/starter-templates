@@ -1,59 +1,23 @@
 // Golden Glide's look, the file to read first (README.md says why it works):
-// the style prompt and the sky, and golden-hour colour baked into base
-// colours. Each mesh's words are beside it in game/.
-//
-//   gold('#7aa84a')                 an object's daylight colour in the low warm sun
-//   sunBands(geometry)              split a shape into lit / middle / shaded faces
-//   haze(color, d)                  fade toward the warm evening haze with distance
+// the style prompt, the sky, and the light of a low sun and a cool sky. Each
+// mesh's everyday colour and words are beside it in game/; the sun that
+// lights them sinks with the flight (`Sun` in game/course.js).
 import * as THREE from 'three';
 
-export const PROMPT = 'style: gouache animation background art. A golden countryside at sunset seen from the air: a low deep orange sun, long shadows, glowing gold highlights and cool blue-green shade, soft painterly brushwork.';
-export const SKY = '#e2c08e';
-export const SKY_WORDS = 'soft blue overhead fading through peach to deep orange and glowing gold at the horizon, a huge glowing orange-gold sun low on the horizon, long shadows across the golden land';
+export const PROMPT = 'style: Gouache animation background art with warm golden-hour lighting. A rolling countryside at sunset, long shadows, backlit by the low sun, aerial view from above and behind.';
+export const SKY = '#dbc79e';
+export const SKY_WORDS = 'soft blue sky fading to glowing gold at horizon with low golden sun';
 
-// Toward the sun: low (about 12°) and ahead, a little to the left.
-const SUN_DIR = new THREE.Vector3(-0.12, 0.21, -1).normalize();
-export const HAZE = new THREE.Color('#edc79a');
+// The sun: low and warm, ahead of the flight (toward -z), its height in
+// degrees above the horizon at the start and as the glider touches down.
+// `angle` softens its shadows' edges, as a hazy evening sun's.
+export const SUN_LIGHT = { color: '#ffb470', intensity: 3, high: 15, low: 12, angle: 0.03 };
+// The sky: a cool blue-green fill, about a fifth of the sun, that the shade takes.
+export const SKY_LIGHT = { sky: '#9cc8d4', ground: '#8aa486', intensity: 0.6 };
+
 export const LEAF_COLORS = ['#e0a84a', '#d68a3a', '#e6b450', '#cf9440'];   // the autumn leaves in the wind
 
-const GOLD = [1.0, 0.86, 0.66];        // the golden-hour recipe: daylight × this
-const BANDS = [
-  { min: 0.18, tint: [1.1, 0.9, 0.6] },     // facing the sun: warm, glowing
-  { min: -0.4, tint: GOLD },                // side-lit
-  { min: -2, tint: [0.7, 0.76, 0.84] },     // facing away: cool blue-green shade
-];
-
-const tinted = (hex, [r, g, b]) => { const c = new THREE.Color(hex); c.r *= r; c.g *= g; c.b *= b; return c; };
-
-export const gold = (hex) => tinted(hex, GOLD);
-export const bandColor = (hex, band) => tinted(hex, BANDS[band].tint);
-
-// Split a geometry's triangles by how squarely they face the sun, into one
-// geometry per band (index 0 lit … 2 shaded; a band can be null).
-export function sunBands(geometry) {
-  const g = geometry.index ? geometry.toNonIndexed() : geometry;
-  const pos = g.attributes.position;
-  const lists = BANDS.map(() => []);
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3();
-  const tri = new THREE.Triangle();
-  for (let i = 0; i < pos.count; i += 3) {
-    a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
-    tri.set(a, b, c).getNormal(n);
-    const d = n.dot(SUN_DIR);
-    const band = BANDS.findIndex((x) => d >= x.min);
-    lists[band].push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-  }
-  return lists.map((l) => {
-    if (!l.length) return null;
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(l, 3));
-    geo.computeVertexNormals();
-    return geo;
-  });
-}
-
-// Fade a colour toward the evening haze, by distance (m) from the flight line.
-export function haze(color, d) {
-  const k = (1 - Math.exp(-((d / 420) ** 1.6))) * 0.85;
-  return color.lerp(HAZE, k);
+// The sky light, added once; the sun is a DirectionalLight that `Sun` aims.
+export function skyLight() {
+  return new THREE.HemisphereLight(SKY_LIGHT.sky, SKY_LIGHT.ground, SKY_LIGHT.intensity);
 }

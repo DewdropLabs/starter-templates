@@ -1,38 +1,56 @@
-// Woolly Farm's look: the style prompt, the sky, the palette, and the shapes
-// of a knitted-wool world (README.md goes through it). Each mesh's
-// description sits beside it in game/.
+// Woolly Farm's look: the style prompt, the sky, the lights, the palette,
+// and the shapes of a knitted-wool world (README.md goes through it). Each
+// mesh's description sits beside it in game/.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mesh } from './core/look.js';
 
-export const PROMPT = 'style: knitted wool and felt craft diorama. Everything made of chunky knitted yarn and soft felt, visible stitches, cozy handmade, soft light, saturated colors, a tiny farm.';
-export const SKY_WORDS = 'a soft blue felt sky backdrop with fluffy white felt clouds';
+export const PROMPT = 'style: Knitted yarn diorama with soft studio lighting. A cozy farm in the morning, viewed from slightly above and behind.';
+export const SKY_WORDS = 'soft blue felt sky backdrop with fluffy white felt clouds';
 
-// The palette (README.md, Colour).
+// The palette (README.md, Colour): everyday colours, a little more saturated
+// than looks right, since knitted wool keeps colours soft.
 export const C = {
-  sky: '#a8d8f0',
+  sky: '#9ad2f2',
   grass: '#86c23c',
-  hedge: '#4f9a32',
-  soil: '#6a3c22',
-  stem: '#3f9a2a',
-  leaf: '#4fae3e',
+  hedge: '#3f9a2a',
+  soil: '#7a4a2a',
+  stem: '#3a9a24',
+  leaf: '#44b032',
   yellow: '#f6c02a',
   orange: '#f08a20',
-  cabbage: '#8cc63f',
-  cabbageOut: '#5aa83a',
+  red: '#e8403a',
+  violet: '#c45ad8',
+  cabbage: '#86cc30',
+  cabbageOut: '#4fac2e',
   picket: '#f3ead6',
-  bark: '#8a5a34',
+  bark: '#8a5228',
   ink: '#2a2420',       // the hen's bead eyes
-  soilWet: '#4a2814',   // a bed just watered
-  turf: '#74b236',      // a wild, untilled bed
-  barn: '#c8342a',
+  soilWet: '#4e2a12',   // a bed just watered
+  turf: '#6cb82c',      // a wild, untilled bed
+  barn: '#d0302a',
   trim: '#f6f2ea',
-  roof: '#6a4a3a',
-  hay: '#e8c25a',
-  wicker: '#c8955a',
-  wood: '#a8784a',
+  roof: '#6e4430',
+  hay: '#f0c448',
+  wicker: '#cc9450',
+  wood: '#a8743e',
 };
+
+// The light: a soft key light from above, in front and to the left as the
+// camera starts, and a bright sky light about a third of it. `angle` is the
+// sun's radius in radians: 0.05 gives soft shadow edges, as studio lamps do.
+export const LIGHT = {
+  sun: { color: '#fff3e2', intensity: 3, position: [9, 14, -7], angle: 0.05 },
+  sky: { color: '#d6ecff', ground: '#e6dcc0', intensity: 1 },
+};
+
+export function addLights(parent) {
+  const sun = new THREE.DirectionalLight(LIGHT.sun.color, LIGHT.sun.intensity);
+  sun.position.set(...LIGHT.sun.position); // (toward its target, at the origin)
+  sun.userData.angle = LIGHT.sun.angle;
+  parent.add(sun, new THREE.HemisphereLight(LIGHT.sky.color, LIGHT.sky.ground, LIGHT.sky.intensity));
+}
 
 // Seeded 3D value-ish noise from sines: smooth, cheap, the same every build.
 function wobble(x, y, z, f, seed) {

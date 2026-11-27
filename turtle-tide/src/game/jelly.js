@@ -1,16 +1,17 @@
-// A jellyfish in leaded glass, ribbon tentacles trailing: each squeeze of its
+// A jellyfish in leaded glass, glowing, ribbon tentacles trailing: each squeeze of its
 // bell pushes it the way the bell points, and near the turtle it tips away and pulses off.
 //
-//   const j = new Jelly(root, water, at, [paneHex, otherHex], r);
+//   const j = new Jelly(root, water, at, [paneHex, otherHex, name], r);   // name: its colour, for its words
 //   j.frame(dt, t, turtlePosition)
 //   j.root (its middle), j.home (where it hangs about), j.color (for a burst), j.gone (eaten: back once the turtle's well away)
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { clamp, smoothstep, inset, TAU } from '../core/util.js';
-import { C, W } from '../look.js';
+import { C, W, LEAD as LEADED } from '../look.js';
 
 const SIDES = 7;
 const SIZE = 1.6;
+const GLOW = 1.6;   // its panes' emissiveIntensity: brighter than the forest
 const LEAD = 0.035, PROUD = 0.01;   // m of lead round each pane; m it stands off the face
 const TENTACLES = { n: 5, segs: 6, len: 1.5, width: 0.08 };
 // Swimming: each squeeze pushes `thrust` m/s² along the bell; it sinks at
@@ -62,21 +63,20 @@ function buffer(n) {
 }
 
 export class Jelly {
-  constructor(root, water, at, [hexA, hexB], r) {
-    this.root = group(W.jelly);
+  constructor(root, water, at, [hexA, hexB, name], r) {
+    this.root = group(W.jelly(name));
     this.root.position.copy(at);
     this.root.scale.setScalar(SIZE);
     root.add(this.root);
-    this.lead = mesh(buffer(LEAD_TRIS), C.seams, 'the black lead of a stained glass jellyfish', { parent: this.root });
+    this.lead = mesh(buffer(LEAD_TRIS), C.lead, W.jellyLead, { ...LEADED, parent: this.root });
     this.lead.material.side = THREE.DoubleSide;
     this.panes = [
-      mesh(buffer(BELL_TRIS[0] * 2), hexA, 'the round bell of a glowing stained glass jellyfish', { parent: this.root }),
+      mesh(buffer(BELL_TRIS[0] * 2), hexA, undefined, { glow: GLOW, roughness: 0.2, parent: this.root }),
       // (The tentacles go with the second colour: a mesh fewer.)
-      mesh(buffer(BELL_TRIS[1] * 2 + TENTACLE_TRIS), hexB, 'a glowing stained glass jellyfish, its long trailing tentacles', { parent: this.root }),
+      mesh(buffer(BELL_TRIS[1] * 2 + TENTACLE_TRIS), hexB, undefined, { glow: GLOW, roughness: 0.2, parent: this.root }),
     ];
     this.panes[1].material.side = THREE.DoubleSide;
-    water.add(this.lead);
-    for (const m of this.panes) water.add(m, { glow: 0.5 });
+    for (const m of [this.lead, ...this.panes]) water.add(m);
 
     this.home = at.clone();
     this.color = hexA;

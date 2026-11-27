@@ -16,10 +16,10 @@ import { group } from '../core/look.js';
 import { clamp, ease } from '../core/util.js';
 import { C, part, ball, lumpy, merge, moundGeo, tubeGeo, stepped } from '../look.js';
 
-const DEEP_ORANGE = '#f05a10';
+const ORANGE = '#f07a14'; // (C.orange, a step deeper: a big soft orange washes out toward beige)
 const WORDS = {
-  sleep: 'a big round vivid saturated orange crochet pumpkin fast asleep, with deep chunky ribs',
-  awake: 'a giant round vivid saturated orange crochet pumpkin with deep chunky ribs',
+  sleep: 'giant round vivid orange knitted wool pumpkin with deep ribs, fast asleep',
+  awake: 'giant round vivid orange knitted wool pumpkin with deep chunky ribs',
 };
 const SMALLEST = 0.4;  // its scale at the start (1 is full size: about 2 m across)
 const SUNK = -0.2;     // how deep it sits in the soil before it's pulled
@@ -45,23 +45,23 @@ export class GiantPumpkin {
       const a = (i / 8) * Math.PI * 2;
       lobes.push(ball(0.5, 0.68, 0.5, 18, 14).translate(Math.sin(a) * 0.48, 0.68, Math.cos(a) * 0.48));
     }
-    part(lumpy(merge(lobes), 0.015, 4, 2), DEEP_ORANGE, undefined, this.inner);
-    part(tubeGeo([[0, 1.25, 0], [0.03, 1.45, 0], [0.12, 1.6, -0.04], [0.24, 1.66, -0.08]], 0.085, 16, 10), '#5a8a2a', 'a thick curly green knitted wool pumpkin stalk', this.inner);
-    part(tubeGeo([[0.05, 1.4, 0], [-0.2, 1.5, 0.1], [-0.3, 1.38, 0.25], [-0.18, 1.3, 0.3], [-0.12, 1.42, 0.2]], 0.025, 30, 6), '#4fae3e', 'a curly green yarn tendril', this.inner);
+    part(lumpy(merge(lobes), 0.015, 4, 2), ORANGE, undefined, this.inner);
+    part(tubeGeo([[0, 1.25, 0], [0.03, 1.45, 0], [0.12, 1.6, -0.04], [0.24, 1.66, -0.08]], 0.085, 16, 10), '#4a8a22', 'thick curly green knitted wool pumpkin stalk', this.inner);
+    part(tubeGeo([[0.05, 1.4, 0], [-0.2, 1.5, 0.1], [-0.3, 1.38, 0.25], [-0.18, 1.3, 0.3], [-0.12, 1.42, 0.2]], 0.025, 30, 6), '#44b032', null, this.inner);
 
     // A sleepy stitched face, toward the field.
     const F = '#5a2a12';
     this.closed = [];
     this.open = [];
     for (const s of [1, -1]) {
-      this.closed.push(part(new THREE.TorusGeometry(0.11, 0.042, 8, 16, Math.PI).rotateZ(Math.PI), F, 'a peaceful closed sleeping eye, a soft curved line of dark brown yarn', this.inner, { position: [s * 0.27, 0.84, 0.94], rotation: [-0.25, s * 0.28, 0], scale: [1, 0.7, 1] }));
-      const eye = part(ball(0.075, 0.11, 0.05), F, 'a round dark brown bead eye, wide awake', this.inner, { position: [s * 0.27, 0.84, 0.95], rotation: [-0.25, s * 0.28, 0] });
+      this.closed.push(part(new THREE.TorusGeometry(0.11, 0.042, 8, 16, Math.PI).rotateZ(Math.PI), F, 'peaceful closed eyes stitched in dark brown felt', this.inner, { position: [s * 0.27, 0.84, 0.94], rotation: [-0.25, s * 0.28, 0], scale: [1, 0.7, 1] }));
+      const eye = part(ball(0.075, 0.11, 0.05), F, 'round dark brown felt button eyes, wide awake', this.inner, { position: [s * 0.27, 0.84, 0.95], rotation: [-0.25, s * 0.28, 0] });
       eye.visible = false;
       this.open.push(eye);
     }
-    part(new THREE.TorusGeometry(0.13, 0.026, 6, 16, Math.PI).rotateZ(Math.PI), F, 'a little smile stitched in dark brown yarn', this.inner, { position: [0, 0.62, 0.99], rotation: [-0.1, 0, 0] });
+    part(new THREE.TorusGeometry(0.13, 0.026, 6, 16, Math.PI).rotateZ(Math.PI), F, 'little smile stitched in dark brown felt', this.inner, { position: [0, 0.62, 0.99], rotation: [-0.1, 0, 0] });
     // (Where it was: a heap of loose soil, once it's out.)
-    this.heap = part(moundGeo(1.5, 1.4, 0.24, 5), C.soil, 'a heap of loose dark brown knitted wool soil', null);
+    this.heap = part(moundGeo(1.5, 1.4, 0.24, 5), C.soil, 'heap of loose dark brown knitted wool soil', null);
     this.heap.position.copy(at);
     this.heap.visible = false;
 

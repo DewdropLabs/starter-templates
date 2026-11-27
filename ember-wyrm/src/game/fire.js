@@ -7,12 +7,13 @@
 //   torrent.start(); torrent.update(dt, t, mouth, knight, camera) → how much of the view it fills (0..1)
 //
 // A flame is a cluster of tongues (shapes.js) pointing along its way and
-// licking upward, in three colours, flickering in scale. No smoke: smoke
-// can't be built.
+// licking upward, glowing in three colours, flickering in scale; the flames
+// light what's round them, and a light that moves with the fire lights the
+// floor and the dragon a little more. No smoke: smoke can't be built.
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { clamp, lerp, rng, ease } from '../core/util.js';
-import { FIRE } from '../look.js';
+import { FIRE, LIGHT, GLOW, glow } from '../look.js';
 import { flameClusterGeometry } from './shapes.js';
 
 const NEAR_LENS = 2.2;   // m
@@ -26,8 +27,8 @@ class Tongues {
     const geo = flameClusterGeometry(0.34);
     const r = rng(seed);
     this.items = Array.from({ length: n }, (_, i) => {
-      const color = palette.colors[i % 3];
-      const m = mesh(geo, color, i % 3 === 2 ? palette.words.core : words);
+      const hot = i % 3 === 2;
+      const m = mesh(geo, glow(palette.colors[i % 3], hot ? GLOW.core : GLOW.flame), hot ? palette.words.core : words);
       m.visible = false;
       this.group.add(m);
       return { m, seed: r() * 100, u: i / Math.max(1, n - 1), jx: r.range(-1, 1), jy: r.range(-1, 1), k: r.range(0.75, 1.25) };
@@ -60,6 +61,8 @@ export class FireJet {
     const P = FIRE.red;
     this.stream = new Tongues(parent, 28, P.words.jet, 31, P);
     this.ground = new Tongues(parent, 9, P.words.ground, 32, P);
+    this.light = new THREE.PointLight(LIGHT.fire.color, 0, LIGHT.fire.distance);
+    parent.add(this.light);
     this.on = false;
     this.t = 0;
     this.path = Array.from({ length: 28 }, () => new THREE.Vector3());
@@ -87,9 +90,12 @@ export class FireJet {
   update(dt, t, mouth, camera) {
     if (!this.on) return;
     this.t += dt;
-    if (this.t > FireJet.RUN + FireJet.BURN + FireJet.DIE) { this.on = false; this.stream.hide(); this.ground.hide(); return; }
+    if (this.t > FireJet.RUN + FireJet.BURN + FireJet.DIE) { this.on = false; this.stream.hide(); this.ground.hide(); this.light.intensity = 0; return; }
     if (this.t < FireJet.RUN + FireJet.BURN) this.from.copy(mouth); // (it pours from the mouth while it burns)
     const front = this.front(), s = this.strength();
+    // (The light rides a little above the middle of what's burning.)
+    this.point(front * 0.6, this.light.position).y += 1.2;
+    this.light.intensity = LIGHT.fire.intensity * s * Math.min(1, front * 2);
     const n = this.stream.items.length;
     for (let i = 0; i < n; i++) {
       const it = this.stream.items[i], u = it.u;
@@ -156,6 +162,8 @@ export class Torrent {
     this.burst = new Tongues(parent, 24, P.words.torrent, 42, P);
     const n = Torrent.ROWS.reduce((a, r) => a + r.n, 0);
     this.wall = new Tongues(parent, n, P.words.wall, 43, P);
+    this.light = new THREE.PointLight(LIGHT.ice.color, 0, LIGHT.ice.distance);
+    parent.add(this.light);
     let i = 0;
     for (const [ri, r] of Torrent.ROWS.entries()) for (let j = 0; j < r.n; j++) Object.assign(this.wall.items[i++], { row: ri, x: (j + 0.5) / r.n + (ri % 2 ? 0.5 / r.n : 0) - 0.5 });
     this.on = false;
@@ -180,6 +188,9 @@ export class Torrent {
     this.side.set(this.fwd.z, 0, -this.fwd.x);
     const land = this.b.copy(knight).addScaledVector(this.fwd, 1.3).setY(0.8);
     this.a.copy(mouth);
+    // (The light: where the torrent lands, as it reaches him.)
+    this.light.position.copy(land).y += 1.5;
+    this.light.intensity = LIGHT.ice.intensity * reach;
     _d.subVectors(land, this.a);
     const L = _d.length();
     _d.normalize();

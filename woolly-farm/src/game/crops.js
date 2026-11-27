@@ -26,6 +26,7 @@ const BURSTS = [0.3, 0.9, 1.5];                // s after watering: one stage ea
 const BURST = 0.32;                            // s a burst takes to settle
 const HARVEST_VERB = { carrot: 'Pull', cabbage: 'Cut', sunflower: 'Pick' };
 const NEAR_LENS = [2.2, 3.4];                  // m from the camera: a crop this close shrinks into its bed
+const CABBAGE = 'round green knitted wool cabbages with chunky stitches'; // (the head that's cut, and the leaves wrapped round it)
 const HOVER = new THREE.Color('#fff0b0'), HOVER_K = 0.32; // a bed under the pointer: its colour this far toward HOVER
 
 // ---------- the crops ----------
@@ -47,7 +48,7 @@ function carrot(seed) {
   root.add(piece);
   // A long, tapered root, mostly in the soil: only its orange shoulder shows until it's pulled.
   const prof = [[0.004, -0.42], [0.025, -0.3], [0.05, -0.14], [0.072, 0.0], [0.082, 0.07], [0.07, 0.11], [0.03, 0.13], [0.001, 0.135]].map(([x, y]) => new THREE.Vector2(x, y));
-  const body = part(ribbed(lumpy(new THREE.LatheGeometry(prof, 16), 0.004, 7, seed), 'y', 10, 0.006), C.orange, 'a long orange crochet carrot with a pointed tip', piece);
+  const body = part(ribbed(lumpy(new THREE.LatheGeometry(prof, 16), 0.004, 7, seed), 'y', 10, 0.006), C.orange, 'long orange knitted wool carrots', piece);
   const fronds = [];
   for (let i = 0; i < 5; i++) {
     const a = (i / 5) * Math.PI * 2 + seed, lean = 0.3 + (i % 2) * 0.14, len = 0.42 + (i % 3) * 0.05;
@@ -82,10 +83,10 @@ function cabbage(seed) {
   const outer = part(lumpy(merge(leaves), 0.012, 6, seed + 3), C.cabbageOut, 'big curly green knitted wool cabbage leaves', root);
   const piece = new THREE.Group(); // (the head is cut; the outer leaves stay, and wilt away)
   root.add(piece);
-  part(lumpy(ribbed(ball(0.25, 0.23, 0.25), 'y', 7, 0.012), 0.014, 5, seed), C.cabbage, 'a big round crochet cabbage heart with chunky stitches', piece, { position: [0, 0.22, 0] });
+  part(lumpy(ribbed(ball(0.25, 0.23, 0.25), 'y', 7, 0.012), 0.014, 5, seed), C.cabbage, CABBAGE, piece, { position: [0, 0.22, 0] });
   const inner = [];
   for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2; inner.push(ball(0.19, 0.2, 0.05).translate(0, 0.15, 0).rotateX(0.35).rotateY(a).translate(Math.sin(a) * 0.12, 0.08, Math.cos(a) * 0.12)); }
-  part(merge(inner), C.cabbageOut, 'curly green knitted wool cabbage leaves wrapped round the heart', piece);
+  part(merge(inner), C.cabbageOut, CABBAGE, piece);
   return {
     root, piece,
     apply(s) {
@@ -98,23 +99,23 @@ function cabbage(seed) {
 function sunflower(seed) {
   const root = new THREE.Group();
   const H = 1.3;
-  const stemGroup = new THREE.Group();
+  const stemGroup = group('thick green knitted wool sunflower stalks with felt leaves');
   root.add(stemGroup);
-  part(tubeGeo([[0, 0, 0], [0.03, H * 0.4, 0.01], [-0.02, H * 0.75, -0.02], [0, H, 0.02]], 0.05, 16, 8), C.stem, 'a thick green knitted wool sunflower stalk', stemGroup);
+  part(tubeGeo([[0, 0, 0], [0.03, H * 0.4, 0.01], [-0.02, H * 0.75, -0.02], [0, H, 0.02]], 0.05, 16, 8), C.stem, undefined, stemGroup);
   const leafs = [];
-  for (const [s, y] of [[1, 0.35], [-1, 0.55]]) leafs.push(part(leafGeo(0.42, 0.26), C.leaf, 'a big green felt leaf with stitched edges', stemGroup, { position: [0, H * y, 0], rotation: [0.2, s * 1.3 + seed, s * 1.0] }));
-  const bud = part(lumpy(ball(0.1, 0.11, 0.1), 0.01, 8, seed), '#5aa83a', 'a round green knitted wool sunflower bud', root);
+  for (const [s, y] of [[1, 0.35], [-1, 0.55]]) leafs.push(part(leafGeo(0.42, 0.26), C.leaf, undefined, stemGroup, { position: [0, H * y, 0], rotation: [0.2, s * 1.3 + seed, s * 1.0] }));
+  const bud = part(lumpy(ball(0.1, 0.11, 0.1), 0.01, 8, seed), '#4fac2e', 'round green knitted wool sunflower buds', root);
   // The head faces the field, nodding a little: petals, a bobbly centre and a green back.
   const piece = new THREE.Group();
   root.add(piece);
-  const face = new THREE.Group();
+  const face = group('big yellow knitted wool sunflowers with brown bobble centres');
   face.rotation.set(-0.3, Math.PI, 0);
   piece.add(face);
   const petals = [];
   for (let i = 0; i < 13; i++) petals.push(ball(0.075, 0.18, 0.035).translate(0, 0.3, 0).rotateZ((i / 13) * Math.PI * 2));
-  part(merge(petals), C.yellow, 'big yellow knitted wool sunflower petals', face);
-  part(lumpy(ball(0.21, 0.21, 0.09), 0.012, 10, seed * 3), '#6a3a1a', 'a round brown bobble-stitch crochet sunflower centre', face, { position: [0, 0, 0.025] });
-  part(cyl(0.22, 0.22, 0.05, 20).rotateX(Math.PI / 2), '#3f8a2a', 'the green felt back of a sunflower', face, { position: [0, 0, -0.05] });
+  part(merge(petals), C.yellow, undefined, face);
+  part(lumpy(ball(0.21, 0.21, 0.09), 0.012, 10, seed * 3), '#6e3816', undefined, face, { position: [0, 0, 0.025] });
+  part(cyl(0.22, 0.22, 0.05, 20).rotateX(Math.PI / 2), '#3a8c24', undefined, face, { position: [0, 0, -0.05] });
   return {
     root, piece,
     apply(s) {
@@ -166,23 +167,23 @@ export class Plot {
     this.group = new THREE.Group();
     this.group.position.copy(this.pos);
 
-    this.turf = part(turfGeo(this.w, this.d, seed), C.turf, 'a patch of shaggy wild green knitted wool grass with long yarn tufts', this.group);
-    this.soil = part(bedGeo(this.w, this.d, 0.3, seed), C.soil, 'a plump dark brown knitted wool soil bed with chunky ribbed rows', this.group);
+    this.turf = part(turfGeo(this.w, this.d, seed), C.turf, 'patch of shaggy wild green knitted wool grass with long tufts', this.group);
+    this.soil = part(bedGeo(this.w, this.d, 0.3, seed), C.soil, 'plump dark brown knitted wool soil bed with chunky ribbed rows', this.group);
     this.soil.visible = false;
     this.dry = new THREE.Color(C.soil);
     this.wet = new THREE.Color(C.soilWet);
-    const sign = group('a little wooden plant sign on a stake');
+    const sign = group('little white felt plant sign on a wooden stake');
     sign.position.set(this.w / 2 - 0.15, 0, this.d / 2 - 0.05);
     sign.rotation.y = Math.PI + 0.15; // (facing the field)
-    part(cyl(0.025, 0.025, 0.55, 6), C.bark, 'a little wooden stake', sign, { position: [0, 0.27, 0] });
+    part(cyl(0.025, 0.025, 0.55, 6), C.bark, undefined, sign, { position: [0, 0.27, 0] });
     const colour = kind === 'carrot' ? C.orange : kind === 'cabbage' ? C.cabbage : C.yellow;
-    part(rbox(0.3, 0.2, 0.05, 0.04), C.trim, 'a little white felt sign', sign, { position: [0, 0.58, 0] });
+    part(rbox(0.3, 0.2, 0.05, 0.04), C.trim, undefined, sign, { position: [0, 0.58, 0] });
     part(kind === 'sunflower' ? cyl(0.07, 0.07, 0.03, 12).rotateX(Math.PI / 2) : kind === 'cabbage' ? ball(0.07, 0.07, 0.03) : new THREE.ConeGeometry(0.035, 0.14, 8).rotateZ(Math.PI / 2 + 0.5),
-      colour, `a little felt ${kind} picture`, sign, { position: [0, 0.58, 0.035] });
+      colour, undefined, sign, { position: [0, 0.58, 0.035] });
     this.group.add(sign);
 
     this.seeds = SPOTS.map((sx) => {
-      const m = part(lumpy(ball(0.11, 0.06, 0.1), 0.01, 7, sx + seed), '#5a3018', 'a little heap of dark knitted wool soil over a planted seed', this.group, { position: [sx, SURFACE - 0.03, 0] });
+      const m = part(lumpy(ball(0.11, 0.06, 0.1), 0.01, 7, sx + seed), '#5a3018', 'little heaps of dark brown knitted wool soil', this.group, { position: [sx, SURFACE - 0.03, 0] });
       m.visible = false;
       return m;
     });

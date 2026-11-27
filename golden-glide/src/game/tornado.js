@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { clamp, damp, lensScale, rng } from '../core/util.js';
-import { gold, LEAF_COLORS } from '../look.js';
+import { LEAF_COLORS } from '../look.js';
 import { leafGeometry } from './course.js';
 
 const H = 46;                  // m: its height, at least
@@ -48,13 +48,13 @@ function funnelGeometry() {
 export class Tornado {
   constructor(root) {
     const r = rng(4242);
-    this.root = group('a dark swirling tornado funnel of wind and dust, twisting down from a storm cloud to the ground');
+    this.root = group('dark grey swirling tornado funnel of wind and dust');
     this.root.visible = false;
     root.add(this.root);
-    const base = gold('#7a7470');
-    this.funnel = mesh(funnelGeometry(), base.clone(), 'a dark swirling tornado funnel of wind and dust, grey storm bands spiralling round it');
+    const base = '#7a7470';
+    this.funnel = mesh(funnelGeometry(), base);
     this.funnel.material.side = THREE.DoubleSide;
-    this.shell = mesh(funnelGeometry(), base.clone(), 'the soft blurred edge of a tornado, wisps of grey wind and dust whirling round it');
+    this.shell = mesh(funnelGeometry(), base);
     this.shell.material.side = THREE.DoubleSide;
     this.shell.material.transparent = true;
     this.shell.material.opacity = 0.38;
@@ -64,14 +64,14 @@ export class Tornado {
     const puffGeo = new THREE.IcosahedronGeometry(1, 2);
     this.clouds = [];
     for (let k = 0; k < CLOUDS; k++) {
-      const m = mesh(puffGeo, gold(CLOUD[k % CLOUD.length]), 'a dark brooding grey storm cloud churning at the top of a tornado');
+      const m = mesh(puffGeo, CLOUD[k % CLOUD.length], 'dark brooding grey storm clouds churning above tornado');
       this.root.add(m);
       this.clouds.push({ mesh: m, a: (k / CLOUDS) * Math.PI * 2 + r.range(-0.3, 0.3), out: r.range(0.55, 1.05), size: r.range(7, 11), up: r.range(-1, 4) });
     }
     // The skirt of dust swirling round its foot.
     this.puffs = [];
     for (let k = 0; k < PUFFS; k++) {
-      const m = mesh(puffGeo, gold(DUST[k % DUST.length]), 'a billowing cloud of ochre dust swirling up off the ground at the foot of a tornado');
+      const m = mesh(puffGeo, DUST[k % DUST.length], 'billowing clouds of ochre dust at foot of tornado');
       this.root.add(m);
       this.puffs.push({ mesh: m, a: (k / PUFFS) * Math.PI * 2, out: r.range(3, 6.5), size: r.range(1.8, 3.2), up: r.range(0.5, 3), spin: r.range(2.2, 3.4) });
     }
@@ -81,8 +81,8 @@ export class Tornado {
     for (let k = 0; k < LEAVES + STRAWS; k++) {
       const leaf = k < LEAVES;
       const m = leaf
-        ? mesh(leafGeo, gold(r.pick(LEAF_COLORS.slice(0, 3))), 'a big golden autumn leaf whirling round a tornado')
-        : mesh(strawGeo, gold(k % 2 ? '#f0d060' : '#e4b84a'), 'a long stalk of golden straw whirling round a tornado');
+        ? mesh(leafGeo, r.pick(LEAF_COLORS.slice(0, 3)), 'big golden autumn leaves whirling round tornado')
+        : mesh(strawGeo, k % 2 ? '#f0d060' : '#e4b84a', 'long stalks of yellow straw whirling round tornado');
       if (leaf) m.material.side = THREE.DoubleSide;
       this.root.add(m);
       this.bits.push({ mesh: m, h: r.range(0.03, 0.9), a: r.range(0, Math.PI * 2), out: r.range(2.5, 5), rise: r.range(0.08, 0.15), tilt: r.range(0, 6) });

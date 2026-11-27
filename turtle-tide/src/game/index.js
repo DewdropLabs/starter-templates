@@ -1,9 +1,9 @@
 // The swim: catching jellyfish, the ghost net and the baby in it, the rise
-// to the surface, the sounds and the camera.
+// to the surface, the sounds, the camera and the night's light.
 import * as THREE from 'three';
 import { sfx } from '../core/audio.js';
 import { clamp, dampVec } from '../core/util.js';
-import { PROMPT, BACKGROUND, BACKGROUND_WORDS, VIGNETTE } from '../look.js';
+import { PROMPT, BACKGROUND, BACKGROUND_WORDS, VIGNETTE, LIGHT } from '../look.js';
 import { Water } from './water.js';
 import { Garden } from './garden.js';
 import { Turtle } from './turtle.js';
@@ -36,16 +36,18 @@ export function create({ root, scene, camera, renderer, input, hud, end }) {
   renderer.prompt = PROMPT;
   scene.background = new THREE.Color(BACKGROUND);
   renderer.backgroundDescription = BACKGROUND_WORDS;
+  // A faint sky (the moonlight is the surface's: garden.js), and the night kept dark.
+  root.add(new THREE.HemisphereLight(LIGHT.sky.color, LIGHT.sky.ground, LIGHT.sky.intensity));
+  renderer.exposure = LIGHT.exposure;
   hud.setButtons(BUTTONS);
   sfx.musicLevel(1);
 
   const water = new Water();
   const garden = new Garden(root, water);
   const life = new Life(root, water, garden);
-  const rescue = new Rescue(root, water);
+  const rescue = new Rescue(root);
   const turtle = new Turtle({ size: 1.3 });
   root.add(turtle.root);
-  for (const m of turtle.water) water.add(m);
   // (It starts on the loop round the middle, heading along it.)
   const on = garden.tour.getTangentAt(0);
   const swim = new Swim(garden, { position: garden.tour.getPointAt(0), yaw: Math.atan2(on.x, on.z) });

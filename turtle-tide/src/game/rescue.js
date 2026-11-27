@@ -1,7 +1,7 @@
 // The ghost net, a baby turtle caught in it: it sinks into view, bursts when
 // the turtle swims into it, and the baby does a happy loop and swims alongside.
 //
-//   const rescue = new Rescue(root, water);
+//   const rescue = new Rescue(root);
 //   rescue.drop(at)               // it sinks into place at `at`, from high above
 //   rescue.caught                 // the baby's still in the net
 //   rescue.free()                 // burst the net
@@ -13,6 +13,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mesh } from '../core/look.js';
 import { clamp, damp, dampAngle, ease, TAU } from '../core/util.js';
 import { Turtle } from './turtle.js';
+import { W, GLASS } from '../look.js';
 
 const SINK = 1.6;          // s to sink into place
 const FROM = 6.5;          // m above its place it starts
@@ -21,7 +22,7 @@ const R = 1.05;            // the net's size (m)
 const SIDE = new THREE.Vector3(-2.0, 0.35, 0.6); // where the baby swims, freed: off the turtle's right flipper, a touch ahead
 
 export class Rescue {
-  constructor(root, water) {
+  constructor(root) {
     this.root = new THREE.Group();
     this.root.visible = false;
     root.add(this.root);
@@ -32,18 +33,15 @@ export class Rescue {
     for (let i = 0; i < 4; i++) {
       const parts = [new THREE.TorusGeometry(R, 0.05, 5, 26).rotateY((i / 4) * Math.PI)];
       if (i < 2) parts.push(new THREE.TorusGeometry(R * 0.78, 0.045, 5, 22).rotateX(Math.PI / 2).translate(0, i ? 0.62 : -0.62, 0));
-      const m = mesh(mergeGeometries(parts.map((g) => g.toNonIndexed())), '#6f8f62', 'a tangled old green fishing net', { parent: this.net });
-      water.add(m);
+      const m = mesh(mergeGeometries(parts.map((g) => g.toNonIndexed())), '#2f6a4a', W.net, { glow: 0.6, roughness: 0.4, parent: this.net });
       this.pieces.push({ m, dir: new THREE.Vector3(Math.cos(i * 1.7), (i % 2 ? 0.6 : -0.3), Math.sin(i * 1.7)).normalize(), spin: (i % 2 ? 1 : -1) * 2.5 });
     }
     for (const [x, y, z] of [[0.6, 0.95, 0.2], [-0.55, 0.9, -0.3], [0.1, 1.05, -0.5]]) {
-      const f = mesh(new THREE.SphereGeometry(0.14, 10, 8), '#ff7a2f', 'a little orange fishing float', { position: [x, y, z], parent: this.net });
-      water.add(f);
+      const f = mesh(new THREE.SphereGeometry(0.14, 10, 8), '#ff7a2f', W.floats, { ...GLASS, position: [x, y, z], parent: this.net });
       this.pieces.push({ m: f, dir: new THREE.Vector3(x, y, z).normalize(), spin: 0 });
     }
     this.baby = new Turtle({ size: 0.42, baby: true });
     this.root.add(this.baby.root);
-    for (const m of this.baby.water) water.add(m);
     this.top = new THREE.Object3D();
     this.root.add(this.top);
 
