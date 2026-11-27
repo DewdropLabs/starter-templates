@@ -1,5 +1,7 @@
 // The garden: a kelp forest without end over a sea floor of coral sponges, sea grass,
-// boulders and starfish, under a glowing surface, in a patch WRAP m square repeated round the turtle.
+// boulders and starfish, under the surface and its moon, in a patch WRAP m square repeated round the turtle.
+// All of it glass that glows in its own colour, with dark lead between the
+// kelp's pieces; the moon lights it faintly from overhead.
 //
 //   const garden = new Garden(root, water);
 //   garden.follow(p)               // each frame: lay the patch out round p
@@ -13,13 +15,13 @@
 //   garden.frame(dt, eye, body)    // body: the turtle's middle (the panes part round it)
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mesh, group } from '../core/look.js';
+import { mesh } from '../core/look.js';
 import { rng, noise2, ease, clamp, smoothstep, TAU } from '../core/util.js';
-import { W, C, KELP, GRASS, CORAL, STARFISH, FLOOR, SURFACE, GLOWING } from '../look.js';
+import { W, C, LIGHT, GLASS, DIM_GLASS, LEAD, KELP, GRASS, CORAL, STARFISH, FLOOR } from '../look.js';
 import { kelpPanes, grassPanes, coralPanes, bladeAt } from './panes.js';
 
 const SEED = 1134876266;      // the layout: every clump, sponge and rock where it is
-const WRAP = 72;              // m: the patch that repeats (things move from behind to ahead WRAP / 2 m off, deep in the haze)
+const WRAP = 72;              // m: the patch that repeats (things move from behind to ahead WRAP / 2 m off, past the water's far edge: water.js)
 const FLOOR_Y = -6;           // the sea floor's mean height
 const HILLS = 1.6;            // m up and down it rolls
 const SWIM = 2.6;             // m over the floor the turtle keeps to
@@ -28,7 +30,7 @@ const TOUR = { r: 15, wobble: 4 };   // the loop round the middle (where it star
 const CLEAR_TIME = 1.6;       // s for the kelp to sink away from a clearing
 const LENS = { from: 3.2, to: 1.6 };  // m from the camera: grass and coral shrink away between these (near the lens they're blobs)
 const TILE = 20, TILES = 6;   // the sea floor: TILES × TILES tiles TILE m square round the turtle
-const SUN = new THREE.Vector3(0, SURFACE_Y, 9);   // the light overhead, from the turtle (it keeps its place)
+const MOON = new THREE.Vector3(0, SURFACE_Y, 9);   // the moon in the surface overhead, from the turtle (it keeps its place)
 // The panes (panes.js, each cut down its middle) split open when the
 // turtle swims right through one: if, at the turtle's height, it's within
 // `reach` m of the pane's face and inside its width (`edge` m of slack) by
@@ -52,9 +54,6 @@ const SHOVE = { out: 2.2, back: 0.12 };
 // middle, whatever's over `belly` m under it is pressed down under it and
 // bulges out, springing back with a wobble (`spring` 1/s², `damp` 1/s).
 const SQUISH = { reach: 1.5, belly: 0.55, spring: 70, damp: 7 };
-// The kelp's lead fades into the water from `from` to `to` m from the camera
-// (to its root): further off, the panes are only apart by thin gaps of water.
-const LEAD_FADE = { from: 8, to: 18 };
 
 const _up = new THREE.Vector3(0, 1, 0), _l = new THREE.Vector3(), _e = new THREE.Vector3();
 // What the panes split open round: the turtle (_l) and the camera (_e), in a clump's own space; and how wide, how tall.
@@ -63,13 +62,13 @@ const OPENERS = [[_l, SPLIT.clear, SPLIT.tall, SPLIT.push, SPLIT.reach], [_q, SP
 // Big flat panes are seen from both sides.
 const twoSided = (m) => { m.material.side = THREE.DoubleSide; return m; };
 const wrapTo = (base, focus, period) => base + period * Math.round((focus - base) / period);
-const PANE_WORDS = { sponge: 'chunky barrel sponges', dome: 'a round dome of coral' };
+const PANE_WORDS = { sponge: 'chunky barrel sponges', dome: 'round coral domes' };
 
 export class Garden {
   constructor(root, water) {
     const r = rng(SEED);
     this.water = water;
-    this.world = group(W.garden);
+    this.world = new THREE.Group();
     root.add(this.world);
     this.surfaceY = SURFACE_Y;
     this.center = new THREE.Vector3(0, FLOOR_Y + SWIM, 0);
@@ -155,10 +154,8 @@ export class Garden {
         g.computeBoundingSphere();
         m.position.set(x + TILE / 2, 0, z + TILE / 2);
       }
-      Object.assign(t.box, { x0: x, x1: x + TILE, z0: z, z1: z + TILE });
     }
     this.sky.position.set(focus.x, 0, focus.z);
-    this.sunAt.set(focus.x + SUN.x, SURFACE_Y, focus.z + SUN.z);
   }
 
   // ---------- building it ----------
@@ -167,14 +164,10 @@ export class Garden {
     this.tiles = [];
     for (let i = 0; i < TILES; i++) {
       for (let j = 0; j < TILES; j++) {
-        // (A mesh for each of the floor's colours, its triangles among them.)
-        const box = { x0: 0, x1: TILE, z0: 0, z1: TILE, y: FLOOR_Y };
-        const ms = this.floorPanes(i, j).map(({ geometry, hex }) => {
-          const m = mesh(geometry, hex, W.floor, { parent: this.world });
-          this.water.add(m, { box });
-          return m;
-        });
-        this.tiles.push({ ms, box, i, j, x: NaN, z: NaN });
+        // (A mesh for each of the floor's colours, its triangles among them.
+        // The floor reaches past the water's far edge all round, so it's left whole.)
+        const ms = this.floorPanes(i, j).map(({ geometry, hex }) => mesh(geometry, hex, W.floor, { ...DIM_GLASS, parent: this.world }));
+        this.tiles.push({ ms, i, j, x: NaN, z: NaN });
       }
     }
   }
@@ -219,9 +212,9 @@ export class Garden {
     let at = null;
     for (const { geometry, hex } of groups) {
       geometry.computeVertexNormals();
-      const m = twoSided(mesh(geometry, hex, words, { rotation: [0, yaw, 0], parent: this.world }));
+      const m = twoSided(mesh(geometry, hex, words, { ...GLASS, rotation: [0, yaw, 0], parent: this.world }));
       const p = this.place(m, x, z, lift);
-      this.water.add(m, { glow: GLOWING }).position = p.at;
+      this.water.add(m).position = p.at;
       m.geometry.computeBoundingSphere();
       m.geometry.boundingSphere.radius += 1;
       m.geometry.computeBoundingBox();
@@ -232,18 +225,17 @@ export class Garden {
   }
 
   // A clump of panes (one mesh: a colour of a kelp clump, its lead, or a
-  // tuft of grass), standing still, parting round the turtle.
-  clump(x, z, geometry, color, words, yaw, blades, kelp) {
-    const m = twoSided(mesh(geometry, color, words, { rotation: [0, yaw, 0], parent: this.world }));
+  // tuft of grass; `surface`: GLASS or LEAD), standing still, parting round the turtle.
+  clump(x, z, geometry, color, words, yaw, blades, kelp, surface = GLASS) {
+    const m = twoSided(mesh(geometry, color, words, { ...surface, rotation: [0, yaw, 0], parent: this.world }));
     geometry.computeVertexNormals();
     // (Parting moves the panes a little past where they rest: room for that, so it isn't culled early.)
     geometry.computeBoundingSphere();
     geometry.boundingSphere.radius += 2.5;
     geometry.computeBoundingBox();
     const p = this.place(m, x, z, -0.1);
-    const tint = this.water.add(m, { glow: GLOWING });
-    tint.position = p.at;
-    const plant = { m, tint, root: p.at, h: geometry.boundingBox.max.y, kelp, blades, sink: 0, sinking: false, rest: null, moved: false };
+    this.water.add(m).position = p.at;
+    const plant = { m, root: p.at, h: geometry.boundingBox.max.y, kelp, blades, sink: 0, sinking: false, rest: null, moved: false };
     this.plants.push(plant);
     return plant;
   }
@@ -254,7 +246,7 @@ export class Garden {
     for (let k = 0; k < 14; k++) {
       const [x, z] = this.spot(r);
       const s = r.range(1.4, 2.6);
-      const m = mesh(rock(r), r() < 0.5 ? C.rock : C.rockDark, W.boulder, { rotation: [0, r() * TAU, 0], scale: s, parent: this.world });
+      const m = mesh(rock(r), r() < 0.5 ? C.rock : C.rockDark, W.boulder, { ...DIM_GLASS, rotation: [0, r() * TAU, 0], scale: s, parent: this.world });
       this.water.add(m).position = this.place(m, x, z, 0, s * 0.25).at;
       this.plant(r, x, z, 1.1, s * 0.85);
     }
@@ -270,7 +262,7 @@ export class Garden {
       r(); // (an unused draw: the seeded layout, which the thumbnail shows, depends on it)
       const { groups, lead, blades } = kelpPanes(r, KELP, r.range(10, 17));
       for (const { geometry, hex } of groups) this.clump(x, z, geometry, hex, W.kelp, yaw, blades, true);
-      this.clump(x, z, lead, C.seams, W.kelpLead, yaw, blades, true).tint.fade = LEAD_FADE;
+      this.clump(x, z, lead, C.lead, W.kelpLead, yaw, blades, true, LEAD);
     }
     // Sea grass.
     for (let k = 0; k < 30; k++) {
@@ -283,27 +275,24 @@ export class Garden {
     // Starfish.
     for (let k = 0; k < 16; k++) {
       const [x, z] = this.spot(r);
-      const m = mesh(starfish(), r.pick(STARFISH), W.starfish, { rotation: [0, r() * TAU, 0], scale: 1.6, parent: this.world });
-      this.water.add(m, { glow: GLOWING }).position = this.place(m, x, z, 0.05).at;
+      const m = mesh(starfish(), r.pick(STARFISH), W.starfish, { ...GLASS, rotation: [0, r() * TAU, 0], scale: 1.6, parent: this.world });
+      this.water.add(m).position = this.place(m, x, z, 0.05).at;
     }
   }
 
-  // The surface overhead: rings of colour round the light (squares read as
-  // blocks round it), and the light itself; they move along with the turtle.
+  // The surface overhead, a sheet of dim blue glass, and the moon in it,
+  // a round pane glowing bright, which lights it round about; with the
+  // moonlight shining down from it. They move along with the turtle.
   buildSurface() {
     this.sky = new THREE.Group();
     this.world.add(this.sky);
-    this.sunAt = new THREE.Vector3();
-    const { colors, reach } = SURFACE, step = reach / colors.length;
-    colors.forEach((hex, i) => {
-      const r0 = i * step, r1 = i === colors.length - 1 ? 150 : (i + 1) * step;
-      const m = mesh(new THREE.RingGeometry(Math.max(r0, 0.01), r1, 64, 1).rotateX(Math.PI / 2), hex, W.sky, { position: SUN.toArray(), parent: this.sky });
-      m.material = new THREE.MeshBasicMaterial({ color: hex, side: THREE.DoubleSide });
-      this.water.add(m, { glow: 1 }).position = this.sunAt;
-    });
-    const sun = mesh(new THREE.CircleGeometry(4, 24).rotateX(Math.PI / 2), C.sun, W.sun, { position: [SUN.x, SURFACE_Y - 0.2, SUN.z], parent: this.sky });
-    sun.material = new THREE.MeshBasicMaterial({ color: C.sun });
-    this.water.add(sun, { glow: 1 }).position = this.sunAt;
+    twoSided(mesh(new THREE.CircleGeometry(150, 48).rotateX(Math.PI / 2), C.surface, W.surface, { ...DIM_GLASS, position: [0, SURFACE_Y, 0], parent: this.sky }));
+    mesh(new THREE.CircleGeometry(4, 24).rotateX(Math.PI / 2), C.moon, W.moon, { glow: LIGHT.moon.glow, position: [MOON.x, SURFACE_Y - 0.2, MOON.z], parent: this.sky });
+    const { color, intensity, angle } = LIGHT.moon, light = new THREE.DirectionalLight(color, intensity);
+    light.userData.angle = angle;
+    light.position.copy(MOON);
+    light.target.position.set(0, FLOOR_Y, 0);
+    this.sky.add(light, light.target);
   }
 
   // ---------- parting round the turtle ----------

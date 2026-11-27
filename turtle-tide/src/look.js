@@ -1,21 +1,24 @@
-// Stained glass by night: the style prompt, the water, the palette and the forest's words.
-export const PROMPT = 'style: Stained glass mosaic with vibrant backlit illumination. A large violet sea turtle with a faceted shell '
-  + 'swims away from the viewer down a channel between dense walls of tall pointed kelp in purple, teal and green. Pink, orange and '
-  + 'gold barrel sponges sit on a dark blue floor on both sides, and a pink jellyfish drifts on the left. Deep blue water fills the background.';
+// Stained glass by night: the style prompt, the sky, the light, the glass and the lead, the palette and the forest's words.
+export const PROMPT = 'style: Stained glass mosaic with vibrant backlit illumination. A kelp forest under the sea at night, eye-level view.';
 export const BACKGROUND = '#0c2a6a';
-export const BACKGROUND_WORDS = 'deep sapphire-blue sea at night, glowing like stained glass, cyan light shining down from above';
+export const BACKGROUND_WORDS = 'deep sapphire-blue night sea';
 // Deep navy at the edges, as in a window's dark frame: a layer over the page, under the HUD.
 export const VIGNETTE = 'radial-gradient(ellipse 72% 74% at 50% 52%, rgba(0,0,0,0) 32%, rgba(4,10,32,0.6) 66%, rgba(2,6,22,0.94) 100%)';
 
-// The water everything fades into with distance (the background, a touch
-// deeper): about two thirds gone at FAR m. The forest glows a little
-// (GLOWING, of 1: the surface, which fades half as fast), so it fades slower.
-export const WATER = '#0a2258';
-export const FAR = 24;
-export const GLOWING = 0.35;
+// The light: the glass glows by itself, so the rest is low. A faint cool
+// light from the surface overhead, a faint sky, and the exposure fixed so
+// the night stays dark (renderer.exposure).
+export const LIGHT = {
+  moon: { color: '#a8dcff', intensity: 0.5, angle: 0.05, glow: 6 },   // glow: the moon's own pane, in the surface
+  sky: { color: '#3a64c8', ground: '#0e1c44', intensity: 0.2 },
+  exposure: { ev: 0, strength: 0, shadowContrast: 1.1, highlightContrast: 0.7, localShadows: 1, localHighlights: 0.2 },
+};
 
-// The surface overhead: rings of these colours round the light, out to `reach` m.
-export const SURFACE = { colors: ['#e8ffff', '#8ff0ff', '#3fc8e8', '#1f88c8', '#164e9a', '#0e2e6e'], reach: 20 };
+// Glass glows in its own colour (`glow`: its emissiveIntensity), polished;
+// lead is dull dark metal. Spread into mesh() (core/look.js): mesh(g, hex, words, { ...GLASS }).
+export const GLASS = { glow: 0.85, roughness: 0.2 };
+export const DIM_GLASS = { glow: 0.6, roughness: 0.3 };   // the floor, the rocks, the manta: deep blues
+export const LEAD = { roughness: 0.55, metalness: 0.5 };
 
 // Each kelp clump picks three of KELP and each tuft of grass one of GRASS
 // ([colour, weight]); each coral two of CORAL; the floor's triangles FLOOR.
@@ -26,27 +29,34 @@ export const STARFISH = ['#ff8a4f', '#ff6fae', '#ffd84f'];
 export const FLOOR = ['#0e1c44', '#16305e', '#1c3a72'];
 
 // The palette. `C.x` is a colour; the turtle's shell is pieced from `plates`
-// over black lead (`seams`), the baby's skin and belly are its own (BABY).
+// over dark lead (`lead`), the baby's skin and belly are its own (BABY).
 export const C = {
-  rock: '#1a2f66', rockDark: '#122250', seams: '#14102e', sun: '#f0ffff', bubble: '#bff8ff', mote: '#fff0b0',
+  rock: '#1a2f66', rockDark: '#122250', lead: '#14102e', surface: '#1f5aa8', moon: '#e8ffff', bubble: '#bff8ff', mote: '#fff0b0',
   plates: ['#7464e8', '#5a80e8', '#9474f4', '#4e5cc8'], spot: '#8a96e8', skin: '#5a6ad0', belly: '#b8c8ff', eye: '#0a1030',
 };
 export const BABY = { skin: '#b8f2b0', belly: '#fff6c8' };
 
-// The forest's words.
+// The forest's words: "stained glass", "glass" or "lead" in each, the lead with words of its own.
 export const W = {
-  garden: 'a vast underwater kelp forest at night, a stained glass window glowing with light',
-  sky: 'the water surface far overhead, cyan light shining down through stained glass',
-  sun: 'light shining down through the water surface, a radiant halo of cyan stained glass',
-  floor: 'the dark sea floor at night, pieced from deep blue stained glass',
-  kelp: 'tall kelp as a few big pointed panes of glowing stained glass side by side',
-  kelpLead: 'the dark lead lines between the pieces of a stained glass kelp frond',
-  grass: 'a few broad blades of sea grass in big panes of glowing stained glass',
-  coral: (what) => `${what} of glowing stained glass, lit from within`,   // what: 'chunky barrel sponges and a round dome of coral'
-  boulder: 'a dark rock of deep blue stained glass',
-  starfish: 'a little starfish of glowing stained glass',
-  jelly: 'a glowing stained glass jellyfish',
-  shards: 'little glowing shards of stained glass bursting apart',
-  manta: 'a manta ray of deep blue stained glass gliding through the water',
-  fish: (c) => `a school of little glowing ${c} fish of stained glass`,
+  turtle: 'violet stained glass sea turtle with faceted shell',
+  baby: 'tiny pale green and violet stained glass baby sea turtle',
+  jelly: (c) => `glowing ${c} stained glass jellyfish with trailing tentacles`,   // c: its colour's name
+  jellyLead: 'dark lead lines of stained glass jellyfish',
+  net: 'tangled old fishing net of dark green glass',
+  floats: 'little orange glass fishing floats',
+  surface: 'rippled sea surface far overhead in blue stained glass',
+  moon: 'round glowing pale cyan stained glass moon pane',
+  floor: 'sea floor of big dark blue stained glass panes',
+  kelp: 'tall kelp of big pointed stained glass panes',
+  kelpLead: 'dark lead lines of stained glass kelp',
+  grass: 'broad sea grass blades of pointed stained glass panes',
+  coral: (what) => `${what} of faceted stained glass`,   // what: 'chunky barrel sponges and round coral domes'
+  boulder: 'rounded dark blue stained glass boulders',
+  starfish: 'little five-armed stained glass starfish',
+  shards: 'little glowing shards of stained glass flying apart',
+  manta: 'big deep blue stained glass manta ray',
+  fish: (c) => `school of little ${c} stained glass fish`,
+  reefFish: 'tiny bright stained glass reef fish',
+  bubbles: 'tiny clear glass air bubbles rising',
+  motes: 'tiny glowing glass motes drifting',
 };

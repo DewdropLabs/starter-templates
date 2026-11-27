@@ -1,5 +1,6 @@
 // The life of the garden: schools of fish, reef fish, the jellyfish (jelly.js)
 // and their bursts of glass when eaten, a manta ray, motes of light and bubbles.
+// All glass, glowing in its own colour, but the bubbles.
 //
 //   const life = new Life(root, water, garden);
 //   life.bubbles.emit(position, n, { spread, size, up })
@@ -9,7 +10,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mesh, group } from '../core/look.js';
 import { rng, clamp, smoothstep, TAU } from '../core/util.js';
-import { C, W } from '../look.js';
+import { C, W, GLASS, DIM_GLASS } from '../look.js';
 import { Jelly } from './jelly.js';
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
@@ -21,6 +22,9 @@ const fishGeo = (() => {
   const fin = new THREE.ConeGeometry(0.07, 0.14, 4).scale(0.3, 1, 1).translate(0, 0.15, -0.02);
   return mergeGeometries([body, tail, fin].map((g) => (g.index ? g.toNonIndexed() : g)));
 })();
+
+// Glass glowing in its own colour (`glow`, its emissiveIntensity), for instances.
+const glass = (color, glow = GLASS.glow) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: glow, roughness: GLASS.roughness });
 
 // n instances, each hidden (scale 0) until it's placed; never culled, as they roam.
 function instanced(root, geometry, material, n, description) {
@@ -37,7 +41,7 @@ function instanced(root, geometry, material, n, description) {
 class Bubbles {
   constructor(root) {
     this.items = Array.from({ length: 90 }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 0, max: 1, size: 0.1, phase: 0 }));
-    this.mesh = instanced(root, new THREE.SphereGeometry(1, 10, 8), new THREE.MeshStandardMaterial({ color: C.bubble, roughness: 0.2 }), this.items.length, 'tiny shimmering silver air bubbles rising');
+    this.mesh = instanced(root, new THREE.SphereGeometry(1, 10, 8), new THREE.MeshStandardMaterial({ color: C.bubble, roughness: 0.1 }), this.items.length, W.bubbles);
     this.next = 0;
     this.r = rng(5);
   }
@@ -84,7 +88,7 @@ class Shards {
 
   set(color) {
     if (this.sets.has(color)) return this.sets.get(color);
-    const mesh = instanced(this.root, new THREE.OctahedronGeometry(1, 0).scale(1, 0.35, 0.7), new THREE.MeshStandardMaterial({ color, roughness: 0.3 }), this.n, W.shards);
+    const mesh = instanced(this.root, new THREE.OctahedronGeometry(1, 0).scale(1, 0.35, 0.7), glass(color, 2), this.n, W.shards);
     const s = { mesh, next: 0, items: Array.from({ length: this.n }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), spin: new THREE.Vector3(), rot: new THREE.Euler(), life: 1, max: 1, size: 0 })) };
     this.sets.set(color, s);
     return s;
@@ -130,7 +134,7 @@ class Motes {
   constructor(root) {
     const r = rng(9);
     this.items = Array.from({ length: 70 }, () => ({ p: new THREE.Vector3(r.range(-1, 1) * BOX, r.range(-0.6, 1) * BOX * 0.6, r.range(-1, 1) * BOX), v: new THREE.Vector3(r.range(-0.15, 0.15), r.range(0.02, 0.15), r.range(-0.15, 0.15)), s: r.range(0.03, 0.075), ph: r() * TAU }));
-    this.mesh = instanced(root, new THREE.SphereGeometry(1, 6, 5), new THREE.MeshStandardMaterial({ color: C.mote, roughness: 0.3 }), this.items.length, 'tiny glowing motes of light drifting in the dark water');
+    this.mesh = instanced(root, new THREE.SphereGeometry(1, 6, 5), glass(C.mote, 2), this.items.length, W.motes);
   }
 
   frame(dt, t, eye) {
@@ -156,7 +160,7 @@ const BOX = 9;
 // A school: n fish in a loose ball, wheeling round a big ellipse, shying away from the turtle.
 class School {
   constructor(root, water, { n, color, words, center, rx, rz, speed, size, spread = 1.6, phase = 0, r }) {
-    this.mesh = instanced(root, fishGeo, new THREE.MeshStandardMaterial({ color, roughness: 0.6 }), n, words);
+    this.mesh = instanced(root, fishGeo, glass(color), n, words);
     this.at = new THREE.Vector3();
     water.add(this.mesh).position = this.at;
     Object.assign(this, { center: new THREE.Vector3(...center), rx, rz, speed, size, phase });
@@ -193,7 +197,7 @@ class School {
 class Locals {
   constructor(root, water, cluster, r) {
     const n = r.int(3, 5);
-    this.mesh = instanced(root, fishGeo, new THREE.MeshStandardMaterial({ color: r.pick(['#ff7a2f', '#ffd23f', '#3fd0ff', '#ff5fa8', '#8f6bff']), roughness: 0.6 }), n, 'tiny bright little reef fish');
+    this.mesh = instanced(root, fishGeo, glass(r.pick(['#ff7a2f', '#ffd23f', '#3fd0ff', '#ff5fa8', '#8f6bff'])), n, W.reefFish);
     this.cluster = cluster;
     this.at = new THREE.Vector3();
     water.add(this.mesh).position = this.at;
@@ -220,18 +224,18 @@ class Manta {
     this.root = group(W.manta);
     root.add(this.root);
     const dark = '#2a4a9c';
-    const body = mesh(new THREE.SphereGeometry(1, 14, 10).scale(0.75, 0.22, 1.05), dark, 'the body of a big manta ray', { parent: this.root });
+    const body = mesh(new THREE.SphereGeometry(1, 14, 10).scale(0.75, 0.22, 1.05), dark, undefined, { ...DIM_GLASS, parent: this.root });
     water.add(body);
     this.wings = [];
     for (const s of [-1, 1]) {
       const pivot = new THREE.Group();
       pivot.position.set(s * 0.5, 0, 0);
       this.root.add(pivot);
-      const w = mesh(new THREE.SphereGeometry(1, 12, 8).scale(1.7, 0.08, 0.85).translate(s * 1.4, 0, -0.15), dark, 'the broad wing of a manta ray', { parent: pivot });
+      const w = mesh(new THREE.SphereGeometry(1, 12, 8).scale(1.7, 0.08, 0.85).translate(s * 1.4, 0, -0.15), dark, undefined, { ...DIM_GLASS, parent: pivot });
       water.add(w);
       this.wings.push({ pivot, s });
     }
-    const tail = mesh(new THREE.CylinderGeometry(0.03, 0.08, 2.4, 5).rotateX(Math.PI / 2).translate(0, 0, -2), dark, 'the long thin tail of a manta ray', { parent: this.root });
+    const tail = mesh(new THREE.CylinderGeometry(0.03, 0.08, 2.4, 5).rotateX(Math.PI / 2).translate(0, 0, -2), dark, undefined, { ...DIM_GLASS, parent: this.root });
     water.add(tail);
     this.root.scale.setScalar(1.4);
   }
@@ -265,9 +269,9 @@ export class Life {
       new School(root, water, { n: 20, color: '#ffd23f', words: W.fish('golden'), center: [garden.center.x, garden.center.y + 3, garden.center.z + 9], rx: 12, rz: 10, speed: 0.2, size: 0.9, r }),
     ];
     this.locals = garden.clusters.filter((_, i) => i % 4 === 0).map((cl) => new Locals(root, water, cl, r));
-    // Jellyfish in two shades of a colour each, a few over the open water and
-    // more scattered over the patch at about the turtle's depth, to eat.
-    const hues = [['#f6a8dc', '#ff6fae'], ['#c9adff', '#8a6cf0'], ['#a8e6ff', '#3fc8e8'], ['#ffc8a0', '#ff8a5a']];
+    // Jellyfish in two shades of a colour each (and its name, for their words), a few over
+    // the open water and more scattered over the patch at about the turtle's depth, to eat.
+    const hues = [['#f6a8dc', '#ff6fae', 'pink'], ['#c9adff', '#8a6cf0', 'lilac'], ['#a8e6ff', '#3fc8e8', 'pale cyan'], ['#ffc8a0', '#ff8a5a', 'peach']];
     const jelly = (p, i) => new Jelly(root, water, p, hues[i % hues.length], r);
     this.jellies = [
       jelly(sp[6].p.clone().add(new THREE.Vector3(0, 2, 0)), 0),

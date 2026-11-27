@@ -1,5 +1,6 @@
 // The glass sea turtle, about 2 m nose to tail at full size: the player, and
-// the baby in the ghost net. A mesh for each colour.
+// the baby in the ghost net. A mesh for each colour of glass, glowing in it,
+// over dark lead.
 //
 //   const turtle = new Turtle({ size });         // turtle.root faces +z, its middle at the origin
 //   new Turtle({ size: 0.42, baby: true })       // the baby, its skin and belly paler
@@ -7,11 +8,10 @@
 //                                                // rate: strokes a second; power 0..1: how big
 //   turtle.stroke()                              // one big stroke now (a burst of speed)
 //   turtle.head                                  // the head (Object3D): where its beak is
-//   turtle.water                                 // its meshes, to haze
 import * as THREE from 'three';
 import { mesh, group } from '../core/look.js';
 import { damp, clamp, inset, TAU } from '../core/util.js';
-import { C, BABY } from '../look.js';
+import { C, BABY, GLASS, LEAD as LEADED, W } from '../look.js';
 
 const LEAD = 0.02, PROUD = 0.012;   // m of lead round each pane; m it stands off the face
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -19,18 +19,17 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 export class Turtle {
   constructor({ size = 1, baby = false } = {}) {
     const P = baby ? { ...C, ...BABY } : C;
-    const who = baby ? 'a tiny cute baby sea turtle' : 'a cute friendly green sea turtle';
+    const who = baby ? W.baby : W.turtle, leadWords = `dark lead lines of ${who}`;
     this.root = group(who);
     this.body = new THREE.Group();
     this.root.add(this.body);
     this.root.scale.setScalar(size);
-    this.water = [];
-    const add = (m) => { this.water.push(m); return m; };
     const plates = P.plates;
 
     // faces: polygons (arrays of Vector3, convex), turned to face away from
     // `from` (or, with none, from the flat middle of a flipper under them);
-    // paint(i) the colour of face i's pane.
+    // paint(i) the colour of face i's pane; `words` the panes' own
+    // description (none: the turtle's). The lead under them has its own.
     const glaze = (faces, paint, parent, words, lead = LEAD, from = null) => {
       const tri = (poly, out) => { for (let i = 1; i < poly.length - 1; i++) out.push(...poly[0].toArray(), ...poly[i].toArray(), ...poly[i + 1].toArray()); };
       const base = [], by = new Map(), n = new THREE.Vector3(), c = new THREE.Vector3();
@@ -46,8 +45,8 @@ export class Turtle {
         tri(pane, by.get(hex));
       });
       const geo = (pos) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g; };
-      add(mesh(geo(base), P.seams, `the black lead of ${words}`, { parent }));
-      for (const [hex, pos] of by) add(mesh(geo(pos), hex, `a pane of stained glass in ${words}`, { parent }));
+      mesh(geo(base), P.lead, leadWords, { ...LEADED, parent });
+      for (const [hex, pos] of by) mesh(geo(pos), hex, words, { ...GLASS, parent });
     };
 
     // The shell: a low dome laid out as a real one is, in big angular
@@ -84,24 +83,24 @@ export class Turtle {
       // (A skirt from the rim in to the belly, so the side is closed.)
       const belly = rim.map((p) => V(p.x * 0.92, -0.06, p.z * 0.92));
       for (let i = 0; i < 12; i++) plate([rim[i], rim[(i + 1) % 12], belly[(i + 1) % 12], belly[i]], edge[(i + 1) % 2]);
-      glaze(shell, (i) => paint[i], this.body, `${who}'s shell`, LEAD, V(0, -0.1, 0));
-      glaze([belly], () => P.belly, this.body, `${who}'s belly`, LEAD, V(0, 0.2, 0));
+      glaze(shell, (i) => paint[i], this.body, undefined, LEAD, V(0, -0.1, 0));
+      glaze([belly], () => P.belly, this.body, undefined, LEAD, V(0, 0.2, 0));
     }
 
     // The head, on a short neck: a blunt wedge of a few faces.
     this.head = new THREE.Group();
     this.head.position.set(0, 0.05, 0.82);
     this.body.add(this.head);
-    add(mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.26, 5).rotateX(Math.PI / 2).toNonIndexed(), P.seams, "a sea turtle's neck", { position: [0, -0.02, -0.08], parent: this.head }));
+    mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.26, 5).rotateX(Math.PI / 2).toNonIndexed(), P.lead, `neck of the ${who}`, { ...LEADED, position: [0, -0.02, -0.08], parent: this.head });
     const nose = V(0, 0.02, 0.36), crown = V(0, 0.2, 0.08), back = V(0, 0.04, -0.12), chin = V(0, -0.14, 0.1);
     const hl = V(-0.2, 0.04, 0.08), hr = V(0.2, 0.04, 0.08);
     const head = [[nose, crown, hl], [nose, hr, crown], [crown, back, hl], [crown, hr, back], [nose, hl, chin], [nose, chin, hr], [back, chin, hl], [back, hr, chin]];
-    glaze(head, (i) => (i < 4 ? P.skin : P.spot), this.head, `${who}'s head`, 0.014, V(0, 0.03, 0.1));
-    for (const s of [-1, 1]) add(mesh(new THREE.OctahedronGeometry(0.05), P.eye, 'a big dark eye', { position: [s * 0.14, 0.1, 0.18], parent: this.head }));
+    glaze(head, (i) => (i < 4 ? P.skin : P.spot), this.head, `head of the ${who}`, 0.014, V(0, 0.03, 0.1));
+    for (const s of [-1, 1]) mesh(new THREE.OctahedronGeometry(0.05), P.eye, `eye of the ${who}`, { roughness: 0.1, position: [s * 0.14, 0.1, 0.18], parent: this.head });
 
     // The flippers, each on a pivot at its shoulder (or hip): flat panes,
     // the front ones two pieces, the back ones one.
-    const fin = (pts, cuts, s, yaw, parent, words) => {
+    const fin = (pts, cuts, s, yaw, parent) => {
       // A flat outline (out, forward) cut across at `cuts` into faces, both sides.
       const xs = [pts[0][0], ...cuts, Infinity], faces = [];
       const cut = (poly, keep, at) => {
@@ -119,21 +118,21 @@ export class Turtle {
         if (piece.length < 3) continue;
         faces.push(piece.map((p) => place(p, 0.02)), piece.map((p) => place(p, -0.02)));
       }
-      glaze(faces, (i) => plates[(Math.floor(i / 2) + (s > 0 ? 1 : 2)) % plates.length], parent, words, 0.017);
+      glaze(faces, (i) => plates[(Math.floor(i / 2) + (s > 0 ? 1 : 2)) % plates.length], parent, undefined, 0.017);
     };
     this.flippers = [];
     for (const s of [-1, 1]) {
       const fore = new THREE.Group();
       fore.position.set(s * 0.48, -0.02, 0.4);
       this.body.add(fore);
-      fin([[0, 0.1], [0.5, 0.17], [1.2, -0.04], [0, -0.12]], [0.55], s, s * 0.38, fore, "a sea turtle's front flipper");
+      fin([[0, 0.1], [0.5, 0.17], [1.2, -0.04], [0, -0.12]], [0.55], s, s * 0.38, fore);
       const hind = new THREE.Group();
       hind.position.set(s * 0.32, -0.05, -0.6);
       this.body.add(hind);
-      fin([[0, 0.07], [0.44, -0.04], [0, -0.11]], [], s, 0, hind, "a sea turtle's back flipper");
+      fin([[0, 0.07], [0.44, -0.04], [0, -0.11]], [], s, 0, hind);
       this.flippers.push({ fore, hind, s });
     }
-    add(mesh(new THREE.ConeGeometry(0.06, 0.2, 4).rotateX(-Math.PI / 2).translate(0, -0.02, -0.9).toNonIndexed(), P.seams, 'a stubby little tail', { parent: this.body }));
+    mesh(new THREE.ConeGeometry(0.06, 0.2, 4).rotateX(-Math.PI / 2).translate(0, -0.02, -0.9).toNonIndexed(), P.lead, `tail of the ${who}`, { ...LEADED, parent: this.body });
 
     this.phase = 0;
     this.power = 0.4;
